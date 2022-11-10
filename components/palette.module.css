@@ -1,0 +1,18 @@
+.colourPalette {
+  display: flex;
+  flex-direction: row;
+}
+
+.paletteItem {
+  margin: 5px;
+  width: 10vw;
+  height: 5vw;
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+}
+
+/*TODO refactor button class*/
+.button {
+  width: 10vw;
+}

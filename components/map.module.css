@@ -1,0 +1,40 @@
+.cursor {
+  background-color: purple;
+  opacity: 0.5;
+}
+
+.container {
+  width: 100vw;
+  height: 100vh;
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer {
+  bottom: 5vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+}
+
+.button {
+  width: 10vw;
+}
+
+.positionView {
+  top: 3vw;
+  position: absolute;
+}
+
+.box {
+  color: white;
+  background-color: gray;
+  margin: 1vh;
+  padding: 2vh;
+  border-radius: 2.5vh;
+}
