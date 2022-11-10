@@ -2,9 +2,10 @@ import styles from './palette.module.css'
 import classNames from 'classnames'
 import { useState } from 'react'
 
-export default function Palette({ updateColour, updatePixel }) {
+import colours from './layout'
+
+export default function Palette({ setPlacing, updateColour, updatePixel }) {
   // Mock palette colours
-  const colours = ['white', 'red', 'yellow', 'green', 'cyan', 'blue']
 
   const [currentColour, setColour] = useState(colours[0])
 

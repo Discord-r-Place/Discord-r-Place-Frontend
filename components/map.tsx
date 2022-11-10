@@ -1,93 +1,85 @@
-import styles from './map.module.css'
-import classNames from 'classnames'
-import { useState } from 'react'
+import useCanvas from '../hooks/useCanvas'
 
-import Palette from './palette'
+import { colours, pixelSize } from './layout'
 import Pixel from './pixel'
 
-export const pixelSize = 100
-
 export default function Map() {
-  // Mock map pixels
-  const tiles = [
-    { x: 0, y: 0, colour: 'red' },
-    { x: 0, y: 5, colour: 'yellow' },
-    { x: 0, y: 2, colour: 'cyan' },
-    { x: 10, y: 0, colour: 'blue' },
-    { x: 10, y: 50, colour: 'green' },
-    { x: 4, y: 20, colour: 'white' },
-  ]
-
-  // Whether we have selected a tile and are placing/painting it
-  const [placing, setPlacing] = useState(false)
-  const [currentPosition, setPosition] = useState({ x: 0, y: 0 })
+  //TODO diff datastructure
+  const canvasWidth = 1000
+  const canvasHeight = 1000
+  const tiles = generateTiles()
 
   /**
-   * Update the colour of the tile at the current position
+   * Generate array of coloured positions (tiles)
    */
-  /*function updateColour(colour) {
-    //TODO diff datastructure
-    console.log(currentPosition)
-    arr.find(
-      (item) => item.x === currentPosition.x && item.y === currentPosition.y
-    ).colour = colour
-  }*/
-
-  /**
-   * Send pixel update to server
-   */
-  function updatePixel(colour) {
-    console.log(
-      `TODO: pixel (${currentPosition.x}, ${currentPosition.y}) is now ${colour}, send to server`
-    )
+  function generateTiles() {
+    // Mock tiles
+    const small = [
+      { x: 0, y: 0, colour: 'red' },
+      { x: 0, y: 5, colour: 'yellow' },
+      { x: 0, y: 2, colour: 'cyan' },
+      { x: 10, y: 0, colour: 'blue' },
+      { x: 10, y: 50, colour: 'green' },
+      { x: 4, y: 20, colour: 'white' },
+    ]
+    const tiles = []
+    for (let x = 0; x < canvasWidth; x++) {
+      for (let y = 0; y < canvasHeight; y++) {
+        const randomIndex = Math.floor(Math.random() * colours.length)
+        tiles.push({ x, y, colour: colours[randomIndex] })
+      }
+    }
+    return tiles
   }
 
+  function resizeCanvas(canvas) {
+    const { width, height } = canvas.getBoundingClientRect()
+
+    if (canvas.width !== width || canvas.height !== height) {
+      const { devicePixelRatio: ratio = 1 } = window
+      const context = canvas.getContext('2d')
+      canvas.width = width * ratio
+      canvas.height = height * ratio
+      context.scale(ratio, ratio)
+      return true
+    }
+
+    return false
+  }
+
+  const draw = (ctx, frameCount) => {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    for (const tile of tiles) {
+      ctx.fillStyle = tile.colour
+      ctx.fillRect(tile.x * pixelSize, tile.y * pixelSize, pixelSize, pixelSize)
+    }
+    //ctx.arc(50, 100, 20 * Math.sin(frameCount * 0.05) ** 2, 0, 2 * Math.PI)
+  }
+
+  const canvasRef = useCanvas(
+    draw,
+    (context, canvas) => {
+      resizeCanvas
+    },
+    () => {}
+  )
+
   return (
-    <div className={styles.container}>
-      {/* Map itself*/}
+    <>
+      <canvas ref={canvasRef} width={canvasWidth} height={canvasHeight} />
+      {/* Map itself
       <div className={styles.container}>
-        {tiles.map((item) => {
-          return <Pixel key={item.x + ',' + item.y} item={item} />
-        })}
+        tiles.map((item) => {
+          return (
+            <Pixel
+              setPosition={setPosition}
+              key={item.x + ',' + item.y}
+              item={item}
+            />
+          )
+        })
       </div>
-      {/* Upper view with current pixel position*/}
-      <div className={classNames(styles.positionView, styles.box)}>
-        {currentPosition.x}, {currentPosition.y}
-      </div>
-      {
-        // Lower 'footer' view
-        // Palette if we have selected a tile and are placing, button otherwise
-        placing ? (
-          <div
-            className={classNames(styles.footer, styles.box)}
-            style={{
-              width: '100vw',
-            }}
-          >
-            <Palette updatePixel={updatePixel} />
-          </div>
-        ) : (
-          <button
-            onClick={() => setPlacing(true)}
-            className={classNames(styles.footer, styles.box)}
-          >
-            paint tile
-          </button>
-        )
-      }
-      {/* Center tile cursor */}
-      <div
-        className={styles.cursor}
-        style={{
-          width: pixelSize,
-          height: pixelSize,
-          top: currentPosition.y * pixelSize,
-          left: currentPosition.x * pixelSize,
-          position: 'absolute',
-        }}
-      >
-        cursor
-      </div>
-    </div>
+      */}
+    </>
   )
 }

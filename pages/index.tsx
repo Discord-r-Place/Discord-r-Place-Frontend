@@ -1,5 +1,5 @@
-import Map from '../components/map'
+import Layout from '../components/Layout'
 
 export default function Home() {
-  return <Map />
+  return <Layout />
 }
