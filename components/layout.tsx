@@ -5,7 +5,7 @@ import { useState } from 'react'
 import Map from './map'
 import Palette from './palette'
 
-export const pixelSize = 10
+export const pixelSize = 1
 export const colours = ['white', 'red', 'yellow', 'green', 'cyan', 'blue']
 
 export default function Layout() {
