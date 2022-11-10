@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useLayoutEffect, useState, useEffect } from 'react'
 import useCanvas from '../hooks/useCanvas'
 
 import { colours, pixelSize } from './layout'
@@ -10,6 +10,12 @@ export default function Map() {
 
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
 
+  useLayoutEffect(() => {
+    const canvas = canvasRef.current
+    const context = canvas.getContext('2d')
+    fullDraw(context)
+  }, [canvasSize])
+
   useEffect(() => {
     handleResize()
 
@@ -18,9 +24,6 @@ export default function Map() {
         width: window.innerWidth,
         height: window.innerHeight,
       })
-      const canvas = canvasRef.current
-      const context = canvas.getContext('2d')
-      fullDraw(context)
     }
     window.addEventListener('resize', handleResize)
 
@@ -89,6 +92,11 @@ export default function Map() {
 
   return (
     <>
+      {canvasSize.width == 0 && (
+        <div style={{ position: 'absolute' }}>
+          <p>Canvas is loading..</p>
+        </div>
+      )}
       <canvas
         ref={canvasRef}
         width={canvasSize.width}
