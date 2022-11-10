@@ -2,7 +2,7 @@ import styles from './palette.module.css'
 import classNames from 'classnames'
 import { useState } from 'react'
 
-import colours from './layout'
+import { colours } from './layout'
 
 export default function Palette({ setPlacing, updateColour, updatePixel }) {
   // Mock palette colours
