@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import useCanvas from '../hooks/useCanvas'
 
 import { colours, pixelSize } from './layout'
@@ -5,9 +6,23 @@ import Pixel from './pixel'
 
 export default function Map() {
   //TODO diff datastructure
-  const canvasWidth = 1000
-  const canvasHeight = 1000
   const tiles = generateTiles()
+
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
+
+  useEffect(() => {
+    function handleResize() {
+      setCanvasSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      })
+    }
+    console.log(canvasSize)
+
+    window.addEventListener('resize', handleResize)
+
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   /**
    * Generate array of coloured positions (tiles)
@@ -23,8 +38,10 @@ export default function Map() {
       { x: 4, y: 20, colour: 'white' },
     ]
     const tiles = []
-    for (let x = 0; x < canvasWidth; x++) {
-      for (let y = 0; y < canvasHeight; y++) {
+    const mapWidth = 1000
+    const mapHeight = 1000
+    for (let x = 0; x < mapWidth; x++) {
+      for (let y = 0; y < mapHeight; y++) {
         const randomIndex = Math.floor(Math.random() * colours.length)
         tiles.push({ x, y, colour: colours[randomIndex] })
       }
@@ -66,7 +83,11 @@ export default function Map() {
 
   return (
     <>
-      <canvas ref={canvasRef} width={canvasWidth} height={canvasHeight} />
+      <canvas
+        ref={canvasRef}
+        width={canvasSize.width}
+        height={canvasSize.height}
+      />
       {/* Map itself
       <div className={styles.container}>
         tiles.map((item) => {

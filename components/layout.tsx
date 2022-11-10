@@ -2,7 +2,7 @@ import styles from './layout.module.css'
 import classNames from 'classnames'
 import { useState } from 'react'
 
-import Map from '../components/map'
+import Map from './map'
 import Palette from './palette'
 
 export const pixelSize = 10
