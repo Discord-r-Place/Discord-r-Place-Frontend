@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react'
 
-const useCanvas = (draw, predraw, postdraw, options = {}) => {
+const useCanvas = (update, draw, predraw, postdraw, options = {}) => {
   const canvasRef = useRef(null)
 
   useEffect(() => {
@@ -19,7 +19,7 @@ const useCanvas = (draw, predraw, postdraw, options = {}) => {
     return () => {
       window.cancelAnimationFrame(animationFrameId)
     }
-  }, [draw])
+  }, [])
   return canvasRef
 }
 export default useCanvas

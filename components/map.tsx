@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import useCanvas from '../hooks/useCanvas'
 
 import { colours, pixelSize } from './layout'
@@ -11,14 +11,17 @@ export default function Map() {
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
 
   useEffect(() => {
+    handleResize()
+
     function handleResize() {
       setCanvasSize({
         width: window.innerWidth,
         height: window.innerHeight,
       })
+      const canvas = canvasRef.current
+      const context = canvas.getContext('2d')
+      fullDraw(context)
     }
-    console.log(canvasSize)
-
     window.addEventListener('resize', handleResize)
 
     return () => window.removeEventListener('resize', handleResize)
@@ -64,7 +67,8 @@ export default function Map() {
     return false
   }
 
-  const draw = (ctx, frameCount) => {
+  const fullDraw = (ctx, frameCount) => {
+    console.log('init draw', ctx.canvas.width, ctx.canvas.height)
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
     for (const tile of tiles) {
       ctx.fillStyle = tile.colour
@@ -73,13 +77,15 @@ export default function Map() {
     //ctx.arc(50, 100, 20 * Math.sin(frameCount * 0.05) ** 2, 0, 2 * Math.PI)
   }
 
-  const canvasRef = useCanvas(
-    draw,
+  /* const canvasRef = useCanvas(
+    canvasSize,
+    fullDraw,
     (context, canvas) => {
-      resizeCanvas
+      //resizeCanvas(canvas)
     },
     () => {}
-  )
+  )*/
+  const canvasRef = useRef(null)
 
   return (
     <>
