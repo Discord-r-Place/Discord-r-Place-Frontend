@@ -1,6 +1,7 @@
 import styles from './layout.module.css'
 import classNames from 'classnames'
 import { useState } from 'react'
+import Image from 'next/image'
 
 import Map from './map'
 import Palette from './palette'
@@ -34,33 +35,35 @@ export default function Layout() {
   }
 
   return (
-    <div className={styles.container}>
+    <div className={styles.mainContent}>
       <Map />
-      {/* Upper view with current pixel position*/}
-      <div className={classNames(styles.positionView, styles.box)}>
-        {currentPosition.x}, {currentPosition.y}
+      <div className={styles.container}>
+        {/* Upper view with current pixel position*/}
+        <div className={classNames(styles.positionView, styles.box)}>
+          {currentPosition.x}, {currentPosition.y}
+        </div>
+        {
+          // Lower 'footer' view
+          // Palette if we have selected a tile and are placing, button otherwise
+          placing ? (
+            <div
+              className={classNames(styles.footer, styles.box)}
+              style={{
+                width: '100vw',
+              }}
+            >
+              <Palette setPlacing={setPlacing} updatePixel={updatePixel} />
+            </div>
+          ) : (
+            <button
+              onClick={() => setPlacing(true)}
+              className={classNames(styles.footer, styles.box)}
+            >
+              paint tile
+            </button>
+          )
+        }
       </div>
-      {
-        // Lower 'footer' view
-        // Palette if we have selected a tile and are placing, button otherwise
-        placing ? (
-          <div
-            className={classNames(styles.footer, styles.box)}
-            style={{
-              width: '100vw',
-            }}
-          >
-            <Palette setPlacing={setPlacing} updatePixel={updatePixel} />
-          </div>
-        ) : (
-          <button
-            onClick={() => setPlacing(true)}
-            className={classNames(styles.footer, styles.box)}
-          >
-            paint tile
-          </button>
-        )
-      }
       {/* Center tile cursor */}
       <div
         className={styles.cursor}
@@ -70,9 +73,11 @@ export default function Layout() {
           top: currentPosition.y * pixelSize,
           left: currentPosition.x * pixelSize,
           position: 'absolute',
+          backgroundImage: '/cursor.svg',
         }}
       >
         cursor
+        <Image src='/cursor.svg' alt='cursor test' width={100} height={100} />
       </div>
     </div>
   )

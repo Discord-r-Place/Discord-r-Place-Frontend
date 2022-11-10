@@ -1,7 +1,7 @@
-.cursor {
+/*.cursor {
   background-color: purple;
   opacity: 0.5;
-}
+}*/
 
 .container {
   width: 100vw;
@@ -37,4 +37,14 @@
   margin: 1vh;
   padding: 2vh;
   border-radius: 2.5vh;
+}
+
+.maincontent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  right: 0;
+  overflow: hidden;
+  z-index: 1;
 }
