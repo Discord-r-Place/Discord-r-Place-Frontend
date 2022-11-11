@@ -4,11 +4,7 @@ import { useState } from 'react'
 
 import { colours } from './layout'
 
-export default function Palette({ setPlacing, updateColour, updatePixel }) {
-  // Mock palette colours
-
-  const [currentColour, setColour] = useState(colours[0])
-
+export default function Palette({ setPlacing, setCursorColour, updatePixel }) {
   return (
     <>
       <div className={styles.colourPalette}>
@@ -16,8 +12,7 @@ export default function Palette({ setPlacing, updateColour, updatePixel }) {
           return (
             <button
               onClick={() => {
-                setColour(colour)
-                //updateColour(colour)
+                setCursorColour(colour)
               }}
               key={colour}
               className={styles.paletteItem}
@@ -26,14 +21,13 @@ export default function Palette({ setPlacing, updateColour, updatePixel }) {
           )
         })}
       </div>
-      current colour: {currentColour}
       <div>
         {/*Go back (stop placing) */}
         <button onClick={() => setPlacing(false)} className={styles.button}>
           x
         </button>
         {/*Confirm placing of tile with selected colour */}
-        <button onClick={updatePixel(currentColour)} className={styles.button}>
+        <button onClick={updatePixel()} className={styles.button}>
           v
         </button>
       </div>

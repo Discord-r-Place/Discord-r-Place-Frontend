@@ -6,24 +6,15 @@ import Map from './map'
 import Palette from './palette'
 
 export const pixelSize = 1
+// Mock palette colours
 export const colours = ['white', 'red', 'yellow', 'green', 'cyan', 'blue']
 
 export default function Layout() {
   // Whether we have selected a tile and are placing/painting it
   const [placing, setPlacing] = useState(false)
-  // TODO pass to child not working
-  const [currentPosition, setPosition] = useState({ x: 0, y: 0 })
-
-  /**
-   * Update the colour of the tile at the current position
-   */
-  /*function updateColour(colour) {
-    //TODO diff datastructure
-    console.log(currentPosition)
-    arr.find(
-      (item) => item.x === currentPosition.x && item.y === currentPosition.y
-    ).colour = colour
-  }*/
+  const [currentPosition, setPosition] = useState({ x: 0, y: 0, scale: 1 })
+  // The colour of the tile we are placing
+  const [cursorColour, setColour] = useState('')
 
   /**
    * Send pixel update to server
@@ -36,11 +27,15 @@ export default function Layout() {
 
   return (
     <>
-      <Map setPosition={setPosition} />
+      <Map
+        setPosition={setPosition}
+        cursorColour={placing ? cursorColour : ''}
+      />
       <div className={styles.container}>
         {/* Upper view with current pixel position*/}
         <div className={classNames(styles.positionView, styles.box)}>
-          {currentPosition.x}, {currentPosition.y}
+          {currentPosition.x.toFixed()}, {currentPosition.y.toFixed()},{' '}
+          {currentPosition.scale.toFixed()}
           {/*`(${Math.floor(x)},${Math.floor(y)}) $
           {z > 0.02 ? Math.round(z * 50) / 10 : Math.ceil(z * 500) / 100}x`*/}
         </div>
@@ -54,7 +49,12 @@ export default function Layout() {
                 width: '100vw',
               }}
             >
-              <Palette setPlacing={setPlacing} updatePixel={updatePixel} />
+              current palette colour: {cursorColour}
+              <Palette
+                setPlacing={setPlacing}
+                setCursorColour={setColour}
+                updatePixel={updatePixel}
+              />
             </div>
           ) : (
             <button

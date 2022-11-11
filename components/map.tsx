@@ -46,7 +46,7 @@ function generateTiles() {
   return tiles
 }
 
-export default function Map({ setPosition }) {
+export default function Map({ setPosition, cursorColour }) {
   //const tilesB =
 
   const canvasRef = useRef(null)
@@ -78,8 +78,9 @@ export default function Map({ setPosition }) {
   useEffect(() => {
     // TODO prop function is undefined
     console.log(setPosition)
-    if (setPosition) setPosition(viewportTopLeft)
-  }, [viewportTopLeft])
+    if (setPosition)
+      setPosition({ x: viewportTopLeft.x, y: viewportTopLeft.y, scale })
+  }, [viewportTopLeft, scale])
 
   // TODO refactor to jsx in html?
   function transform(newViewportTopLeft, zoomScale) {
@@ -389,6 +390,7 @@ export default function Map({ setPosition }) {
         <div
           className={styles.cursor}
           style={{
+            background: cursorColour,
             transform:
               'translate(' +
               Math.floor(viewportTopLeft.x) +
