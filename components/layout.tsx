@@ -1,7 +1,6 @@
 import styles from './layout.module.css'
 import classNames from 'classnames'
 import { useState } from 'react'
-import Image from 'next/image'
 
 import Map from './map'
 import Palette from './palette'
@@ -12,6 +11,7 @@ export const colours = ['white', 'red', 'yellow', 'green', 'cyan', 'blue']
 export default function Layout() {
   // Whether we have selected a tile and are placing/painting it
   const [placing, setPlacing] = useState(false)
+  // TODO pass to child not working
   const [currentPosition, setPosition] = useState({ x: 0, y: 0 })
 
   /**
@@ -35,12 +35,14 @@ export default function Layout() {
   }
 
   return (
-    <div id='mainContent' className={styles.mainContent}>
-      <Map />
+    <>
+      <Map setPosition={setPosition} />
       <div className={styles.container}>
         {/* Upper view with current pixel position*/}
         <div className={classNames(styles.positionView, styles.box)}>
           {currentPosition.x}, {currentPosition.y}
+          {/*`(${Math.floor(x)},${Math.floor(y)}) $
+          {z > 0.02 ? Math.round(z * 50) / 10 : Math.ceil(z * 500) / 100}x`*/}
         </div>
         {
           // Lower 'footer' view
@@ -64,21 +66,6 @@ export default function Layout() {
           )
         }
       </div>
-      {/* Center tile cursor */}
-      <div
-        className={styles.cursor}
-        style={{
-          width: pixelSize,
-          height: pixelSize,
-          top: currentPosition.y * pixelSize,
-          left: currentPosition.x * pixelSize,
-          position: 'absolute',
-          backgroundImage: '/cursor.svg',
-        }}
-      >
-        cursor
-        <Image src='/cursor.svg' alt='cursor test' width={100} height={100} />
-      </div>
-    </div>
+    </>
   )
 }

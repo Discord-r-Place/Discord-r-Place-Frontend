@@ -39,13 +39,3 @@
   border-radius: 2.5vh;
   z-index: 3;
 }
-
-.maincontent {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  right: 0;
-  overflow: hidden;
-  z-index: 1;
-}

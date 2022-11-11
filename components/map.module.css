@@ -14,3 +14,35 @@
   top: 50%;
   left: 50%;
 }
+
+.cursor {
+  width: 100px;
+  height: 100px;
+  transform-origin: top left;
+  position: absolute;
+  will-change: transform;
+  z-index: 3;
+  background-color: rgb(255, 0, 221);
+  background-image: './cursor.svg';
+}
+
+.cursorparent {
+  position: absolute;
+  font-size: 0;
+  z-index: 3;
+  width: 0;
+  height: 0;
+  flex-shrink: 0;
+  transform-origin: top left;
+  box-shadow: 0 0 0 0.07px #c6c4c4, 0 0 0 0.24px white, 0 0 0 0.35px #484848;
+}
+
+.maincontent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  right: 0;
+  overflow: hidden;
+  z-index: 1;
+}
