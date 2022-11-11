@@ -17,9 +17,6 @@ const ORIGIN = Object.freeze({ x: 0, y: 0 })
 // TODO this is pixelsize
 const MAX_SCALE = 50
 
-//TODO diff datastructure
-const tiles = generateTiles()
-
 /**
  * Generate array of coloured positions (tiles)
  */
@@ -47,6 +44,8 @@ function generateTiles() {
 }
 
 export default function Map({ setPosition, cursorColour }) {
+  //TODO diff datastructure
+  const tiles = generateTiles()
   //const tilesB =
 
   const canvasRef = useRef(null)
@@ -76,10 +75,18 @@ export default function Map({ setPosition, cursorColour }) {
 
   // update position in layout
   useEffect(() => {
-    // TODO prop function is undefined
-    console.log(setPosition)
+    //console.log(setPosition)
+
     if (setPosition)
-      setPosition({ x: viewportTopLeft.x, y: viewportTopLeft.y, scale })
+      // TODO could handle formatting in layout component
+      setPosition({
+        x: Math.floor(viewportTopLeft.x),
+        y: Math.floor(viewportTopLeft.y),
+        scale:
+          scale > 0.02
+            ? Math.round(scale * 50) / 10
+            : Math.ceil(scale * 500) / 100,
+      })
   }, [viewportTopLeft, scale])
 
   // TODO refactor to jsx in html?
@@ -208,7 +215,7 @@ export default function Map({ setPosition, cursorColour }) {
         //console.log('mouse update', viewportMousePos, topLeftCanvasPos)
       }
     }
-    console.log('adding mouse listener')
+    //console.log('adding mouse listener')
     canvasElem.addEventListener('mousemove', handleUpdateMouse)
     canvasElem.addEventListener('wheel', handleUpdateMouse)
     return () => {
@@ -400,7 +407,7 @@ export default function Map({ setPosition, cursorColour }) {
           }}
         >
           cursor
-          <Image src='/cursor.svg' alt='cursor test' width={100} height={100} />
+          {/*<Image src='/cursor.svg' alt='cursor test' width={100} height={100} />*/}
         </div>
       </div>
     </div>

@@ -27,7 +27,7 @@ export default function Palette({ setPlacing, setCursorColour, updatePixel }) {
           x
         </button>
         {/*Confirm placing of tile with selected colour */}
-        <button onClick={updatePixel()} className={styles.button}>
+        <button onClick={updatePixel} className={styles.button}>
           v
         </button>
       </div>

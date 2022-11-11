@@ -22,8 +22,6 @@
   position: absolute;
   will-change: transform;
   z-index: 3;
-  background-color: rgb(255, 0, 221);
-  background-image: './cursor.svg';
 }
 
 .cursorparent {

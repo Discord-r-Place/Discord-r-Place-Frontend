@@ -19,9 +19,9 @@ export default function Layout() {
   /**
    * Send pixel update to server
    */
-  function updatePixel(colour) {
+  function updatePixel() {
     console.log(
-      `TODO: pixel (${currentPosition.x}, ${currentPosition.y}) is now ${colour}, send to server`
+      `TODO: pixel (${currentPosition.x}, ${currentPosition.y}) is now ${cursorColour}, send to server`
     )
   }
 
@@ -29,15 +29,12 @@ export default function Layout() {
     <>
       <Map
         setPosition={setPosition}
-        cursorColour={placing ? cursorColour : ''}
+        cursorColour={placing ? cursorColour : `url('/cursor.svg')`}
       />
       <div className={styles.container}>
         {/* Upper view with current pixel position*/}
         <div className={classNames(styles.positionView, styles.box)}>
-          {currentPosition.x.toFixed()}, {currentPosition.y.toFixed()},{' '}
-          {currentPosition.scale.toFixed()}
-          {/*`(${Math.floor(x)},${Math.floor(y)}) $
-          {z > 0.02 ? Math.round(z * 50) / 10 : Math.ceil(z * 500) / 100}x`*/}
+          {currentPosition.x}, {currentPosition.y}, {currentPosition.scale}x
         </div>
         {
           // Lower 'footer' view
