@@ -35,7 +35,7 @@ export default function Layout() {
   }
 
   return (
-    <div className={styles.mainContent}>
+    <div id='mainContent' className={styles.mainContent}>
       <Map />
       <div className={styles.container}>
         {/* Upper view with current pixel position*/}

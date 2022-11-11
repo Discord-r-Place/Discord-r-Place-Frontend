@@ -353,11 +353,11 @@ export default function Map() {
 
   return (
     <>
-      {canvasSize.width == 0 && (
+      {/*canvasSize.width == 0 && (
         <div style={{ position: 'absolute' }}>
           <p>Canvas is loading..</p>
         </div>
-      )}
+      )*/}
       <canvas
         //onMouseDown={startPan}
         ref={canvasRef}
@@ -366,7 +366,10 @@ export default function Map() {
         width={mapSize.width}
         height={mapSize.height}
         className={styles.canvas}
-      />
+        style={{ position: 'absolute' }}
+      >
+        <p>Canvas is loading..</p>
+      </canvas>
       <div
         style={{ position: 'absolute', background: 'green', color: 'white' }}
       >

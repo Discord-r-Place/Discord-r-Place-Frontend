@@ -37,6 +37,7 @@
   margin: 1vh;
   padding: 2vh;
   border-radius: 2.5vh;
+  z-index: 3;
 }
 
 .maincontent {
