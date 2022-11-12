@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
 } from 'react'
-import Image from 'next/image'
 import { addPoints, diffPoints, scalePoint } from '../helpers/math'
 
 import { colours, pixelSize } from './layout'
@@ -14,7 +13,6 @@ import { colours, pixelSize } from './layout'
 const mapSize = { width: 1000, height: 1000 }
 const ORIGIN = Object.freeze({ x: 0, y: 0 })
 
-// TODO this is pixelsize
 const MAX_SCALE = 50
 
 /**
@@ -57,14 +55,13 @@ export default function Map({ setPosition, cursorColour }) {
   })
   const [minZoom, setMinZoom] = useState(0)
 
-  //const [context, setContext] = useState<CanvasRenderingContext2D | null>(null)
+  const [context, setContext] = useState(null)
   const [scale, setScale] = useState<number>(1)
   const [offset, setOffset] = useState<Point>(ORIGIN)
   const [mousePos, setMousePos] = useState<Point>(ORIGIN)
   const [viewportTopLeft, setViewportTopLeft] = useState<Point>(ORIGIN)
   const [parentSize, setParentSize] = useState<Point>(ORIGIN)
 
-  //const isResetRef = useRef<boolean>(false)
   const lastMousePosRef = useRef<Point>(ORIGIN)
   const lastOffsetRef = useRef<Point>(ORIGIN)
 
@@ -89,71 +86,28 @@ export default function Map({ setPosition, cursorColour }) {
       })
   }, [viewportTopLeft, scale])
 
-  // TODO refactor to jsx in html?
   function transform(newViewportTopLeft, zoomScale) {
     setScale(zoomScale)
     setViewportTopLeft(newViewportTopLeft)
-    /*const cursorParent = canvasRef.current
-    cursorParent.style.transform = `translate(${
-      newViewportTopLeft.x * zoomScale * -MAX_SCALE + window.innerWidth / 2
-    }px, ${
-      newViewportTopLeft.y * zoomScale * -MAX_SCALE +
-      contentRef.current.offsetHeight / 2
-    }px) scale(${zoomScale * MAX_SCALE})`*/
     const canvas = canvasRef.current
     setCanvasSize({
       width: canvas.width,
       height: canvas.height,
     })
-    /*
-    canvas.style.width = zoomScale * canvas.width * MAX_SCALE + 'px'
-    canvas.style.height = zoomScale * canvas.height * MAX_SCALE + 'px'
-    canvas.style.transform =
-      'translate(' +
-      -newViewportTopLeft.x * MAX_SCALE * zoomScale +
-      'px, ' +
-      -newViewportTopLeft.y * MAX_SCALE * zoomScale +
-      'px)'*/
     canvas.style.imageRendering =
       zoomScale < 1 / MAX_SCALE / devicePixelRatio ? 'initial' : ''
   }
 
-  // reset
-  /*const reset = useCallback(
-    (context: CanvasRenderingContext2D) => {
-      if (context && !isResetRef.current) {
-        setScale(1)
-
-        // reset state and refs
-        setContext(context)
-        setOffset(ORIGIN)
-        setMousePos(ORIGIN)
-        setViewportTopLeft(ORIGIN)
-        lastOffsetRef.current = ORIGIN
-        lastMousePosRef.current = ORIGIN
-
-        // this thing is so multiple resets in a row don't clear canvas
-        isResetRef.current = true
-      }
-    },
-    [canvasSize]
-  )*/
-
   // functions for panning
-  const mouseMove = useCallback(
-    (event: MouseEvent) => {
-      //if (context) {
-      const lastMousePos = lastMousePosRef.current
-      const currentMousePos = { x: event.pageX, y: event.pageY } // use document so can pan off element
-      lastMousePosRef.current = currentMousePos
+  const mouseMove = useCallback((event: MouseEvent) => {
+    const lastMousePos = lastMousePosRef.current
+    const currentMousePos = { x: event.pageX, y: event.pageY } // use document so can pan off element
+    lastMousePosRef.current = currentMousePos
 
-      const mouseDiff = diffPoints(currentMousePos, lastMousePos)
-      //console.log(mouseDiff)
-      setOffset((prevOffset) => addPoints(prevOffset, mouseDiff))
-      //}
-    },
-    [] //[context]
-  )
+    const mouseDiff = diffPoints(currentMousePos, lastMousePos)
+    //console.log(mouseDiff)
+    setOffset((prevOffset) => addPoints(prevOffset, mouseDiff))
+  }, [])
   const mouseUp = useCallback(() => {
     document.removeEventListener('mousemove', mouseMove)
     document.removeEventListener('mouseup', mouseUp)
@@ -167,18 +121,6 @@ export default function Map({ setPosition, cursorColour }) {
     },
     [mouseMove, mouseUp]
   )
-
-  // setup canvas and set context
-  /*useLayoutEffect(() => {
-    if (canvasRef.current) {
-      // get new drawing context
-      const renderCtx = canvasRef.current.getContext('2d')
-
-      if (renderCtx) {
-        reset(renderCtx)
-      }
-    }
-  }, [reset, canvasSize])*/
 
   // pan when offset or scale changes
   useLayoutEffect(() => {
@@ -194,22 +136,15 @@ export default function Map({ setPosition, cursorColour }) {
     }
   }, [/*context, */ offset, scale])
 
-  // add event listener on canvas for mouse position
+  // add event listeners for mouse position
   useEffect(() => {
-    /*const canvasElem = canvasRef.current
-    if (canvasElem === null) {
-      return
-    }*/
-
     function handleUpdateMouse(event: MouseEvent) {
       event.preventDefault()
       if (canvasRef.current) {
         const viewportMousePos = { x: event.clientX, y: event.clientY }
         const topLeftCanvasPos = {
           x: window.innerWidth / 2,
-          y: contentRef.current.offsetHeight / 2, //window.innerHeight / 2,
-          //x: canvasRef.current.offsetLeft,
-          //y: canvasRef.current.offsetTop,
+          y: contentRef.current.offsetHeight / 2,
         }
         setMousePos(diffPoints(viewportMousePos, topLeftCanvasPos))
         //console.log('mouse update', viewportMousePos, topLeftCanvasPos)
@@ -226,15 +161,10 @@ export default function Map({ setPosition, cursorColour }) {
 
   // add event listener on canvas for zoom
   useEffect(() => {
-    /*const canvasElem = canvasRef.current
-    if (canvasElem === null) {
-      return
-    }*/
     //console.log('adding wheel listener, canvas:', canvasElem)
     function handleWheel(event: WheelEvent) {
       event.preventDefault()
       //console.log('wheel on canvas')
-      //if (context) {
       const zoom = Math.max(
         minZoom / scale,
         Math.min(
@@ -256,28 +186,17 @@ export default function Map({ setPosition, cursorColour }) {
       transform(newViewportTopLeft, zoomScale)
       //console.log('scale', zoomScale, 'viewport top left', newViewportTopLeft)
       //console.log('STATE | scale', scale, 'viewport top left', viewportTopLeft)
-      //isResetRef.current = false
-      //}
     }
 
     document.addEventListener('wheel', handleWheel)
     return () => document.removeEventListener('wheel', handleWheel)
-  }, [/*context,*/ mousePos.x, mousePos.y, viewportTopLeft, scale])
+  }, [mousePos.x, mousePos.y, viewportTopLeft, scale])
 
   // draw initial tile canvas
   useLayoutEffect(() => {
     const canvas = canvasRef.current
-    /*const { width, height } = canvas.getBoundingClientRect()
-
-    if (canvas.width !== width || canvas.height !== height) {
-      const { devicePixelRatio: ratio = 1 } = window
-      const context = canvas.getContext('2d')
-      canvas.width = width * ratio
-      canvas.height = height * ratio
-      context.scale(ratio, ratio)
-    }*/
-
     const context = canvas.getContext('2d')
+    setContext(context)
     fullDraw(context)
   }, [])
 
@@ -323,12 +242,6 @@ export default function Map({ setPosition, cursorColour }) {
     for (const tile of tiles) {
       ctx.fillStyle = tile.colour
       ctx.fillRect(tile.x, tile.y, pixelSize, pixelSize)
-      /*
-    for (let x = 0; x < mapSize.width; x++) {
-      for (let y = 0; y < mapSize.height; y++) {
-        ctx.fillStyle = 'rgba(' + (x * 255) / mapSize.width + ',0,0,0.5)'
-      ctx.fillRect(tile.x, tile.y, pixelSize, pixelSize)
-      }*/
     }
   }
 
@@ -351,11 +264,22 @@ export default function Map({ setPosition, cursorColour }) {
 
   return (
     <div id='mainContent' ref={contentRef} className={styles.maincontent}>
-      {/*canvasSize.width == 0 && (
-        <div style={{ position: 'absolute' }}>
-          <p>Canvas is loading..</p>
+      {!context && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            zIndex: 5,
+            textAlign: 'center',
+            display: 'flex',
+            justifyContent: 'center',
+            transform: 'translate(-50%, -50%)',
+          }}
+        >
+          <h1>Canvas is loading..</h1>
         </div>
-      )*/}
+      )}
       <canvas
         ref={canvasRef}
         width={mapSize.width}
@@ -371,9 +295,7 @@ export default function Map({ setPosition, cursorColour }) {
             'px)',
         }}
         className={styles.canvas}
-      >
-        <p>Canvas is loading..</p>
-      </canvas>
+      />
       <div
         style={{ position: 'absolute', background: 'green', color: 'white' }}
       >
@@ -409,7 +331,6 @@ export default function Map({ setPosition, cursorColour }) {
           }}
         >
           cursor
-          {/*<Image src='/cursor.svg' alt='cursor test' width={100} height={100} />*/}
         </div>
       </div>
     </div>
