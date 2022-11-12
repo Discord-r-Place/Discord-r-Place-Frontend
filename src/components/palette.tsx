@@ -1,10 +1,15 @@
-import styles from './palette.module.css'
-import classNames from 'classnames'
-import { useState } from 'react'
+import { colours } from 'src/components/layout'
+import styles from 'src/components/palette.module.css'
 
-import { colours } from './layout'
-
-export default function Palette({ setPlacing, setCursorColour, updatePixel }) {
+export default function Palette({
+  setPlacing,
+  setCursorColour,
+  updatePixel
+}: {
+  setPlacing: (placing: boolean) => void
+  setCursorColour: (cursorColour: string) => void
+  updatePixel: () => void
+}) {
   return (
     <>
       <div className={styles.colourPalette}>

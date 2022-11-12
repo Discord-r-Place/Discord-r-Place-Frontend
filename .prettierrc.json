@@ -5,6 +5,6 @@
   "singleQuote": true,
   "endOfLine": "auto",
   "jsxSingleQuote": true,
-  "importOrder": ["^src/(.*)$", "^testing/(.*)$", "^[./]"],
+  "importOrder": ["^src/(.*)$", "^pages/(.*)$", "^[./]"],
   "importOrderSeparation": true
 }

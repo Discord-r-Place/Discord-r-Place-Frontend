@@ -1,4 +1,3 @@
-import styles from './map.module.css'
 import {
   useEffect,
   useCallback,
@@ -6,16 +5,14 @@ import {
   useRef,
   useState
 } from 'react'
-import { addPoints, diffPoints, scalePoint } from '../helpers/math'
 
-import { colours, pixelSize } from './layout'
+import { Point } from 'src/components/Point'
+import { colours, pixelSize } from 'src/components/layout'
+import styles from 'src/components/map.module.css'
+import { addPoints, diffPoints, scalePoint } from 'src/helpers/math'
 
 const mapSize = { width: 1000, height: 1000 }
 
-type Point = {
-  x: number
-  y: number
-}
 const ORIGIN = Object.freeze({ x: 0, y: 0 })
 
 const MAX_SCALE = 50

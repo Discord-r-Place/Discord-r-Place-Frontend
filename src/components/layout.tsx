@@ -1,9 +1,9 @@
-import styles from './layout.module.css'
 import classNames from 'classnames'
 import { useState } from 'react'
 
-import Map from './map'
-import Palette from './palette'
+import styles from 'src/components/layout.module.css'
+import Map from 'src/components/map'
+import Palette from 'src/components/palette'
 
 export const pixelSize = 1
 // Mock palette colours
