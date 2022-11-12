@@ -1,71 +1,50 @@
-import styles from './map.module.css'
 import {
   useEffect,
   useCallback,
   useLayoutEffect,
   useRef,
-  useState,
+  useState
 } from 'react'
-import { addPoints, diffPoints, scalePoint } from '../helpers/math'
+import styled from 'styled-components'
 
-import { colours, pixelSize } from './layout'
+import { Colour, Point, Position, Size } from 'src/components/Types'
+import { pixelSize } from 'src/components/layout'
+import { generateTiles } from 'src/helpers/GenerateTiles'
+import { addPoints, diffPoints, scalePoint } from 'src/helpers/math'
 
-const mapSize = { width: 1000, height: 1000 }
+const mapSize: Size = { width: 1000, height: 1000 }
 
-type Point = {
-  x: number
-  y: number
-}
 const ORIGIN = Object.freeze({ x: 0, y: 0 })
-
+const ORIGIN_SIZE = Object.freeze({ width: 0, height: 0 }) // highly dubious
 const MAX_SCALE = 50
 
-/**
- * Generate array of coloured positions (tiles)
- */
-function generateTiles() {
-  // Mock tiles
-  const small = [
-    { x: 0, y: 0, colour: 'red' },
-    { x: 0, y: 5, colour: 'yellow' },
-    { x: 0, y: 2, colour: 'cyan' },
-    { x: 10, y: 0, colour: 'blue' },
-    { x: 10, y: 50, colour: 'green' },
-    { x: 4, y: 20, colour: 'white' },
-  ]
-  const tiles = []
-  let index = 0
-  for (let x = 0; x < mapSize.width; x++) {
-    for (let y = 0; y < mapSize.height; y++) {
-      const randomIndex = Math.floor(Math.random() * colours.length)
-      tiles.push({ x, y, colour: colours[randomIndex] })
-      /*tiles.push({ x, y, colour: small[index].colour })
-      index = (index + 1) % small.length*/
-    }
-  }
-  return tiles
-}
-
-export default function Map({ setPosition, cursorColour }) {
+export default function Map({
+  setPosition,
+  cursorColour
+}: {
+  setPosition: (position: Position) => void
+  cursorColour?: Colour | `url('/cursor.svg')`
+}) {
   //TODO diff datastructure
-  const [tiles, setTiles] = useState(generateTiles)
+  const [tiles, setTiles] = useState(() => generateTiles(mapSize))
   //const tilesB =
 
-  const canvasRef = useRef(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const [renderContext, setRenderContext] = useState<CanvasRenderingContext2D>()
+
   const cursorParentRef = useRef(null)
-  const contentRef = useRef(null)
   const [canvasSize, setCanvasSize] = useState({
     width: mapSize.width,
-    height: mapSize.height,
+    height: mapSize.height
   })
   const [minZoom, setMinZoom] = useState(0)
 
-  const [context, setContext] = useState(null)
   const [scale, setScale] = useState<number>(1)
   const [offset, setOffset] = useState<Point>(ORIGIN)
   const [mousePos, setMousePos] = useState<Point>(ORIGIN)
   const [viewportTopLeft, setViewportTopLeft] = useState<Point>(ORIGIN)
-  const [parentSize, setParentSize] = useState<Point>(ORIGIN)
+  const [parentSize, setParentSize] = useState<Size>(ORIGIN_SIZE)
 
   const lastMousePosRef = useRef<Point>(ORIGIN)
   const lastOffsetRef = useRef<Point>(ORIGIN)
@@ -87,17 +66,17 @@ export default function Map({ setPosition, cursorColour }) {
         scale:
           scale > 0.02
             ? Math.round(scale * 50) / 10
-            : Math.ceil(scale * 500) / 100,
+            : Math.ceil(scale * 500) / 100
       })
-  }, [viewportTopLeft, scale])
+  }, [viewportTopLeft, scale, setPosition])
 
-  function transform(newViewportTopLeft, zoomScale) {
+  function transform(newViewportTopLeft: Point, zoomScale: number) {
     setScale(zoomScale)
     setViewportTopLeft(newViewportTopLeft)
-    const canvas = canvasRef.current
+    const canvas = canvasRef.current!
     setCanvasSize({
       width: canvas.width,
-      height: canvas.height,
+      height: canvas.height
     })
     canvas.style.imageRendering =
       zoomScale < 1 / MAX_SCALE / devicePixelRatio ? 'initial' : ''
@@ -119,7 +98,7 @@ export default function Map({ setPosition, cursorColour }) {
   }, [mouseMove])
 
   const startPan = useCallback(
-    (event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+    (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       document.addEventListener('mousemove', mouseMove)
       document.addEventListener('mouseup', mouseUp)
       lastMousePosRef.current = { x: event.pageX, y: event.pageY }
@@ -149,7 +128,7 @@ export default function Map({ setPosition, cursorColour }) {
         const viewportMousePos = { x: event.clientX, y: event.clientY }
         const topLeftCanvasPos = {
           x: window.innerWidth / 2,
-          y: contentRef.current.offsetHeight / 2,
+          y: contentRef.current!.offsetHeight / 2
         }
         setMousePos(diffPoints(viewportMousePos, topLeftCanvasPos))
         //console.log('mouse update', viewportMousePos, topLeftCanvasPos)
@@ -181,7 +160,7 @@ export default function Map({ setPosition, cursorColour }) {
       const zoomScale = scale * zoom
       const viewportTopLeftDelta = {
         x: (mousePos.x * (zoom - 1)) / (zoomScale * MAX_SCALE),
-        y: (mousePos.y * (zoom - 1)) / (zoomScale * MAX_SCALE),
+        y: (mousePos.y * (zoom - 1)) / (zoomScale * MAX_SCALE)
       }
       const newViewportTopLeft = addPoints(
         viewportTopLeft,
@@ -195,13 +174,13 @@ export default function Map({ setPosition, cursorColour }) {
 
     document.addEventListener('wheel', handleWheel)
     return () => document.removeEventListener('wheel', handleWheel)
-  }, [mousePos.x, mousePos.y, viewportTopLeft, scale])
+  }, [mousePos.x, mousePos.y, viewportTopLeft, scale, minZoom])
 
   // draw initial tile canvas
   useLayoutEffect(() => {
-    const canvas = canvasRef.current
-    const context = canvas.getContext('2d')
-    setContext(context)
+    const canvas = canvasRef.current!
+    const context = canvas.getContext('2d')!
+    setRenderContext(context)
     fullDraw(context)
   }, [])
 
@@ -213,14 +192,14 @@ export default function Map({ setPosition, cursorColour }) {
     function handleResize() {
       setParentSize({
         width: window.innerWidth / 2,
-        height: contentRef.current.offsetHeight / 2,
+        height: contentRef.current!.offsetHeight / 2
       })
 
       setMinZoom(
         Math.min(
           window.innerWidth / canvasSize.width,
           //window.innerHeight / mapSize.height
-          contentRef.current.offsetHeight / canvasSize.height
+          contentRef.current!.offsetHeight / canvasSize.height
         ) / 100
       )
     }
@@ -233,10 +212,10 @@ export default function Map({ setPosition, cursorColour }) {
     // clamp scale
     if (scale < minZoom) setScale(minZoom)
     if (scale > 1) setScale(1)
-  }, [scale])
+  }, [minZoom, scale])
 
   // draw all tiles
-  const fullDraw = (ctx, frameCount) => {
+  const fullDraw = (ctx: CanvasRenderingContext2D) => {
     /*console.log(
       'full draw',
       ctx.canvas.width,
@@ -268,8 +247,8 @@ export default function Map({ setPosition, cursorColour }) {
   }*/
 
   return (
-    <div id='mainContent' ref={contentRef} className={styles.maincontent}>
-      {!context && (
+    <MainContent id='mainContent' ref={contentRef}>
+      {!renderContext && (
         <div
           style={{
             position: 'absolute',
@@ -279,13 +258,13 @@ export default function Map({ setPosition, cursorColour }) {
             textAlign: 'center',
             display: 'flex',
             justifyContent: 'center',
-            transform: 'translate(-50%, -50%)',
+            transform: 'translate(-50%, -50%)'
           }}
         >
           <h1>Canvas is loading..</h1>
         </div>
       )}
-      <canvas
+      <Canvas
         ref={canvasRef}
         width={mapSize.width}
         height={mapSize.height}
@@ -297,21 +276,17 @@ export default function Map({ setPosition, cursorColour }) {
             -viewportTopLeft.x * MAX_SCALE * scale +
             'px, ' +
             -viewportTopLeft.y * MAX_SCALE * scale +
-            'px)',
+            'px)'
         }}
-        className={styles.canvas}
       />
-      <div
-        style={{ position: 'absolute', background: 'green', color: 'white' }}
-      >
+      <PixelDebugBox>
         <pre>scale: {scale}</pre>
         <pre>offset: {JSON.stringify(offset)}</pre>
         <pre>viewportTopLeft: {JSON.stringify(viewportTopLeft)}</pre>
-      </div>
+      </PixelDebugBox>
       {/* Center tile cursor */}
-      <div
+      <CursorParent
         onMouseDown={startPan}
-        className={styles.cursorparent}
         ref={cursorParentRef}
         style={{
           width: mapSize.width + 'px',
@@ -320,11 +295,10 @@ export default function Map({ setPosition, cursorColour }) {
             viewportTopLeft.x * scale * -MAX_SCALE + parentSize.width
           }px, ${
             viewportTopLeft.y * scale * -MAX_SCALE + parentSize.height
-          }px) scale(${scale * MAX_SCALE})`,
+          }px) scale(${scale * MAX_SCALE})`
         }}
       >
-        <div
-          className={styles.cursor}
+        <Cursor
           style={{
             background: cursorColour,
             transform:
@@ -332,12 +306,65 @@ export default function Map({ setPosition, cursorColour }) {
               Math.floor(viewportTopLeft.x) +
               'px, ' +
               Math.floor(viewportTopLeft.y) +
-              'px) scale(0.01)',
+              'px) scale(0.01)'
           }}
         >
           cursor
-        </div>
-      </div>
-    </div>
+        </Cursor>
+      </CursorParent>
+    </MainContent>
   )
 }
+
+const Canvas = styled.canvas`
+  image-rendering: optimizeSpeed;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: pixelated;
+  image-rendering: -o-crisp-edges;
+  image-rendering: optimize-contrast;
+  -ms-interpolation-mode: nearest-neighbor;
+  z-index: 0;
+  position: absolute;
+  background: #fff;
+  outline: 1px white solid;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+`
+
+const Cursor = styled.div`
+  width: 100px;
+  height: 100px;
+  transform-origin: top left;
+  position: absolute;
+  will-change: transform;
+  z-index: 3;
+`
+
+const CursorParent = styled.div`
+  position: absolute;
+  font-size: 0;
+  z-index: 3;
+  width: 0;
+  height: 0;
+  flex-shrink: 0;
+  transform-origin: top left;
+  box-shadow: 0 0 0 0.07px #c6c4c4, 0 0 0 0.24px white, 0 0 0 0.35px #484848;
+`
+
+const MainContent = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  right: 0;
+  overflow: hidden;
+  z-index: 1;
+`
+
+const PixelDebugBox = styled.div`
+  position: absolute;
+  background: green;
+  color: white;
+`
