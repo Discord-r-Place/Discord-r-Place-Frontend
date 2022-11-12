@@ -4,7 +4,7 @@ import {
   useCallback,
   useLayoutEffect,
   useRef,
-  useState,
+  useState
 } from 'react'
 import { addPoints, diffPoints, scalePoint } from '../helpers/math'
 
@@ -31,7 +31,7 @@ function generateTiles() {
     { x: 0, y: 2, colour: 'cyan' },
     { x: 10, y: 0, colour: 'blue' },
     { x: 10, y: 50, colour: 'green' },
-    { x: 4, y: 20, colour: 'white' },
+    { x: 4, y: 20, colour: 'white' }
   ]
   const tiles = []
   let index = 0
@@ -56,7 +56,7 @@ export default function Map({ setPosition, cursorColour }) {
   const contentRef = useRef(null)
   const [canvasSize, setCanvasSize] = useState({
     width: mapSize.width,
-    height: mapSize.height,
+    height: mapSize.height
   })
   const [minZoom, setMinZoom] = useState(0)
 
@@ -87,7 +87,7 @@ export default function Map({ setPosition, cursorColour }) {
         scale:
           scale > 0.02
             ? Math.round(scale * 50) / 10
-            : Math.ceil(scale * 500) / 100,
+            : Math.ceil(scale * 500) / 100
       })
   }, [viewportTopLeft, scale])
 
@@ -97,7 +97,7 @@ export default function Map({ setPosition, cursorColour }) {
     const canvas = canvasRef.current
     setCanvasSize({
       width: canvas.width,
-      height: canvas.height,
+      height: canvas.height
     })
     canvas.style.imageRendering =
       zoomScale < 1 / MAX_SCALE / devicePixelRatio ? 'initial' : ''
@@ -149,7 +149,7 @@ export default function Map({ setPosition, cursorColour }) {
         const viewportMousePos = { x: event.clientX, y: event.clientY }
         const topLeftCanvasPos = {
           x: window.innerWidth / 2,
-          y: contentRef.current.offsetHeight / 2,
+          y: contentRef.current.offsetHeight / 2
         }
         setMousePos(diffPoints(viewportMousePos, topLeftCanvasPos))
         //console.log('mouse update', viewportMousePos, topLeftCanvasPos)
@@ -181,7 +181,7 @@ export default function Map({ setPosition, cursorColour }) {
       const zoomScale = scale * zoom
       const viewportTopLeftDelta = {
         x: (mousePos.x * (zoom - 1)) / (zoomScale * MAX_SCALE),
-        y: (mousePos.y * (zoom - 1)) / (zoomScale * MAX_SCALE),
+        y: (mousePos.y * (zoom - 1)) / (zoomScale * MAX_SCALE)
       }
       const newViewportTopLeft = addPoints(
         viewportTopLeft,
@@ -213,7 +213,7 @@ export default function Map({ setPosition, cursorColour }) {
     function handleResize() {
       setParentSize({
         width: window.innerWidth / 2,
-        height: contentRef.current.offsetHeight / 2,
+        height: contentRef.current.offsetHeight / 2
       })
 
       setMinZoom(
@@ -279,7 +279,7 @@ export default function Map({ setPosition, cursorColour }) {
             textAlign: 'center',
             display: 'flex',
             justifyContent: 'center',
-            transform: 'translate(-50%, -50%)',
+            transform: 'translate(-50%, -50%)'
           }}
         >
           <h1>Canvas is loading..</h1>
@@ -297,7 +297,7 @@ export default function Map({ setPosition, cursorColour }) {
             -viewportTopLeft.x * MAX_SCALE * scale +
             'px, ' +
             -viewportTopLeft.y * MAX_SCALE * scale +
-            'px)',
+            'px)'
         }}
         className={styles.canvas}
       />
@@ -320,7 +320,7 @@ export default function Map({ setPosition, cursorColour }) {
             viewportTopLeft.x * scale * -MAX_SCALE + parentSize.width
           }px, ${
             viewportTopLeft.y * scale * -MAX_SCALE + parentSize.height
-          }px) scale(${scale * MAX_SCALE})`,
+          }px) scale(${scale * MAX_SCALE})`
         }}
       >
         <div
@@ -332,7 +332,7 @@ export default function Map({ setPosition, cursorColour }) {
               Math.floor(viewportTopLeft.x) +
               'px, ' +
               Math.floor(viewportTopLeft.y) +
-              'px) scale(0.01)',
+              'px) scale(0.01)'
           }}
         >
           cursor

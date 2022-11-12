@@ -43,7 +43,7 @@ export default function Layout() {
             <div
               className={classNames(styles.footer, styles.box)}
               style={{
-                width: '100vw',
+                width: '100vw'
               }}
             >
               current palette colour: {cursorColour}
