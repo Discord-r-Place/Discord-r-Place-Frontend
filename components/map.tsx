@@ -43,7 +43,7 @@ function generateTiles() {
 
 export default function Map({ setPosition, cursorColour }) {
   //TODO diff datastructure
-  const [tiles, setTiles] = useState(generateTiles())
+  const [tiles, setTiles] = useState(generateTiles)
   //const tilesB =
 
   const canvasRef = useRef(null)
