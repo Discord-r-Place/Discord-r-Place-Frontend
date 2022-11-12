@@ -11,7 +11,7 @@ import { addPoints, diffPoints, scalePoint } from '../helpers/math'
 
 import { colours, pixelSize } from './layout'
 
-const mapSize = { width: 300, height: 300 }
+const mapSize = { width: 1000, height: 1000 }
 const ORIGIN = Object.freeze({ x: 0, y: 0 })
 
 // TODO this is pixelsize
@@ -279,7 +279,7 @@ export default function Map({ setPosition, cursorColour }) {
 
     const context = canvas.getContext('2d')
     fullDraw(context)
-  }, [/*canvasSize, context,*/ scale, offset, viewportTopLeft])
+  }, [])
 
   // resize canvas
   useEffect(() => {
