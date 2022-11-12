@@ -279,13 +279,11 @@ export default function Map({
             'px)'
         }}
       />
-      <div
-        style={{ position: 'absolute', background: 'green', color: 'white' }}
-      >
+      <PixelDebugBox>
         <pre>scale: {scale}</pre>
         <pre>offset: {JSON.stringify(offset)}</pre>
         <pre>viewportTopLeft: {JSON.stringify(viewportTopLeft)}</pre>
-      </div>
+      </PixelDebugBox>
       {/* Center tile cursor */}
       <CursorParent
         onMouseDown={startPan}
@@ -363,4 +361,10 @@ const MainContent = styled.div`
   right: 0;
   overflow: hidden;
   z-index: 1;
+`
+
+const PixelDebugBox = styled.div`
+  position: absolute;
+  background: green;
+  color: white;
 `

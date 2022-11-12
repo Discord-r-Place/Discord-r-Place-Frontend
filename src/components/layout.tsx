@@ -113,6 +113,7 @@ const Footer = styled.div`
 const CoordinateBox = styled(Box)`
   top: 3vw;
   position: absolute;
+  z-index: 3;
 `
 
 const PaintButton = styled.button`
