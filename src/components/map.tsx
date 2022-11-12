@@ -6,63 +6,45 @@ import {
   useState
 } from 'react'
 
-import { Point } from 'src/components/Point'
-import { colours, pixelSize } from 'src/components/layout'
+import { Point, Position, Size } from 'src/components/Types'
+import { pixelSize } from 'src/components/layout'
 import styles from 'src/components/map.module.css'
+import { generateTiles } from 'src/helpers/GenerateTiles'
 import { addPoints, diffPoints, scalePoint } from 'src/helpers/math'
 
-const mapSize = { width: 1000, height: 1000 }
+const mapSize: Size = { width: 1000, height: 1000 }
 
 const ORIGIN = Object.freeze({ x: 0, y: 0 })
-
+const ORIGIN_SIZE = Object.freeze({ width: 0, height: 0 }) // highly dubious
 const MAX_SCALE = 50
 
-/**
- * Generate array of coloured positions (tiles)
- */
-function generateTiles() {
-  // Mock tiles
-  const small = [
-    { x: 0, y: 0, colour: 'red' },
-    { x: 0, y: 5, colour: 'yellow' },
-    { x: 0, y: 2, colour: 'cyan' },
-    { x: 10, y: 0, colour: 'blue' },
-    { x: 10, y: 50, colour: 'green' },
-    { x: 4, y: 20, colour: 'white' }
-  ]
-  const tiles = []
-  let index = 0
-  for (let x = 0; x < mapSize.width; x++) {
-    for (let y = 0; y < mapSize.height; y++) {
-      const randomIndex = Math.floor(Math.random() * colours.length)
-      tiles.push({ x, y, colour: colours[randomIndex] })
-      /*tiles.push({ x, y, colour: small[index].colour })
-      index = (index + 1) % small.length*/
-    }
-  }
-  return tiles
-}
-
-export default function Map({ setPosition, cursorColour }) {
+export default function Map({
+  setPosition,
+  cursorColour
+}: {
+  setPosition: (position: Position) => void
+  cursorColour: string
+}) {
   //TODO diff datastructure
-  const [tiles, setTiles] = useState(generateTiles)
+  const [tiles, setTiles] = useState(generateTiles(mapSize))
   //const tilesB =
 
-  const canvasRef = useRef(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const [renderContext, setRenderContext] = useState<CanvasRenderingContext2D>()
+
   const cursorParentRef = useRef(null)
-  const contentRef = useRef(null)
   const [canvasSize, setCanvasSize] = useState({
     width: mapSize.width,
     height: mapSize.height
   })
   const [minZoom, setMinZoom] = useState(0)
 
-  const [context, setContext] = useState(null)
   const [scale, setScale] = useState<number>(1)
   const [offset, setOffset] = useState<Point>(ORIGIN)
   const [mousePos, setMousePos] = useState<Point>(ORIGIN)
   const [viewportTopLeft, setViewportTopLeft] = useState<Point>(ORIGIN)
-  const [parentSize, setParentSize] = useState<Point>(ORIGIN)
+  const [parentSize, setParentSize] = useState<Size>(ORIGIN_SIZE)
 
   const lastMousePosRef = useRef<Point>(ORIGIN)
   const lastOffsetRef = useRef<Point>(ORIGIN)
@@ -86,12 +68,12 @@ export default function Map({ setPosition, cursorColour }) {
             ? Math.round(scale * 50) / 10
             : Math.ceil(scale * 500) / 100
       })
-  }, [viewportTopLeft, scale])
+  }, [viewportTopLeft, scale, setPosition])
 
-  function transform(newViewportTopLeft, zoomScale) {
+  function transform(newViewportTopLeft: Point, zoomScale: number) {
     setScale(zoomScale)
     setViewportTopLeft(newViewportTopLeft)
-    const canvas = canvasRef.current
+    const canvas = canvasRef.current!
     setCanvasSize({
       width: canvas.width,
       height: canvas.height
@@ -116,7 +98,7 @@ export default function Map({ setPosition, cursorColour }) {
   }, [mouseMove])
 
   const startPan = useCallback(
-    (event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+    (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
       document.addEventListener('mousemove', mouseMove)
       document.addEventListener('mouseup', mouseUp)
       lastMousePosRef.current = { x: event.pageX, y: event.pageY }
@@ -146,7 +128,7 @@ export default function Map({ setPosition, cursorColour }) {
         const viewportMousePos = { x: event.clientX, y: event.clientY }
         const topLeftCanvasPos = {
           x: window.innerWidth / 2,
-          y: contentRef.current.offsetHeight / 2
+          y: contentRef.current!.offsetHeight / 2
         }
         setMousePos(diffPoints(viewportMousePos, topLeftCanvasPos))
         //console.log('mouse update', viewportMousePos, topLeftCanvasPos)
@@ -192,13 +174,13 @@ export default function Map({ setPosition, cursorColour }) {
 
     document.addEventListener('wheel', handleWheel)
     return () => document.removeEventListener('wheel', handleWheel)
-  }, [mousePos.x, mousePos.y, viewportTopLeft, scale])
+  }, [mousePos.x, mousePos.y, viewportTopLeft, scale, minZoom])
 
   // draw initial tile canvas
   useLayoutEffect(() => {
-    const canvas = canvasRef.current
-    const context = canvas.getContext('2d')
-    setContext(context)
+    const canvas = canvasRef.current!
+    const context = canvas.getContext('2d')!
+    setRenderContext(context)
     fullDraw(context)
   }, [])
 
@@ -210,14 +192,14 @@ export default function Map({ setPosition, cursorColour }) {
     function handleResize() {
       setParentSize({
         width: window.innerWidth / 2,
-        height: contentRef.current.offsetHeight / 2
+        height: contentRef.current!.offsetHeight / 2
       })
 
       setMinZoom(
         Math.min(
           window.innerWidth / canvasSize.width,
           //window.innerHeight / mapSize.height
-          contentRef.current.offsetHeight / canvasSize.height
+          contentRef.current!.offsetHeight / canvasSize.height
         ) / 100
       )
     }
@@ -230,10 +212,10 @@ export default function Map({ setPosition, cursorColour }) {
     // clamp scale
     if (scale < minZoom) setScale(minZoom)
     if (scale > 1) setScale(1)
-  }, [scale])
+  }, [minZoom, scale])
 
   // draw all tiles
-  const fullDraw = (ctx, frameCount) => {
+  const fullDraw = (ctx: CanvasRenderingContext2D) => {
     /*console.log(
       'full draw',
       ctx.canvas.width,
@@ -266,7 +248,7 @@ export default function Map({ setPosition, cursorColour }) {
 
   return (
     <div id='mainContent' ref={contentRef} className={styles.maincontent}>
-      {!context && (
+      {!renderContext && (
         <div
           style={{
             position: 'absolute',
