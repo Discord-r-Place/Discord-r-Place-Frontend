@@ -1,41 +1,63 @@
+import styled from 'styled-components'
+
+import { CustomButton } from 'src/components/CustomButton'
+import { Colour } from 'src/components/Types'
 import { colours } from 'src/components/layout'
-import styles from 'src/components/palette.module.css'
 
 export default function Palette({
-  setPlacing,
-  setCursorColour,
-  updatePixel
+  onClose,
+  onSelectColour,
+  onAccept
 }: {
-  setPlacing: (placing: boolean) => void
-  setCursorColour: (cursorColour: string) => void
-  updatePixel: () => void
+  onClose: () => void
+  onSelectColour: (colour: Colour) => void
+  onAccept: () => void
 }) {
   return (
-    <>
-      <div className={styles.colourPalette}>
+    <ColourPickerDiv>
+      <ColourPalette>
         {colours.map((colour) => {
           return (
-            <button
-              onClick={() => {
-                setCursorColour(colour)
-              }}
+            <PaletteItem
               key={colour}
-              className={styles.paletteItem}
+              onClick={() => {
+                onSelectColour(colour)
+              }}
               style={{ background: colour }}
             />
           )
         })}
-      </div>
-      <div>
+      </ColourPalette>
+      <CenteredButtons>
         {/*Go back (stop placing) */}
-        <button onClick={() => setPlacing(false)} className={styles.button}>
-          x
-        </button>
+        <CustomButton onClick={() => onClose()}>x</CustomButton>
         {/*Confirm placing of tile with selected colour */}
-        <button onClick={updatePixel} className={styles.button}>
-          v
-        </button>
-      </div>
-    </>
+        <CustomButton onClick={() => onAccept()}>v</CustomButton>
+      </CenteredButtons>
+    </ColourPickerDiv>
   )
 }
+
+const ColourPickerDiv = styled.div`
+  display: grid;
+  grid-template-row: 1fr 1fr;
+`
+
+const ColourPalette = styled.div`
+  display: flex;
+  flex-direction: row;
+`
+
+const PaletteItem = styled.button`
+  margin: 5px;
+  width: 10vw;
+  height: 5vw;
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+`
+
+const CenteredButtons = styled.div`
+  display: flex;
+  justify-content: center;
+`

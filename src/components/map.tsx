@@ -5,10 +5,10 @@ import {
   useRef,
   useState
 } from 'react'
+import styled from 'styled-components'
 
-import { Point, Position, Size } from 'src/components/Types'
+import { Colour, Point, Position, Size } from 'src/components/Types'
 import { pixelSize } from 'src/components/layout'
-import styles from 'src/components/map.module.css'
 import { generateTiles } from 'src/helpers/GenerateTiles'
 import { addPoints, diffPoints, scalePoint } from 'src/helpers/math'
 
@@ -23,7 +23,7 @@ export default function Map({
   cursorColour
 }: {
   setPosition: (position: Position) => void
-  cursorColour: string
+  cursorColour?: Colour | `url('/cursor.svg')`
 }) {
   //TODO diff datastructure
   const [tiles, setTiles] = useState(generateTiles(mapSize))
@@ -247,7 +247,7 @@ export default function Map({
   }*/
 
   return (
-    <div id='mainContent' ref={contentRef} className={styles.maincontent}>
+    <MainContent id='mainContent' ref={contentRef}>
       {!renderContext && (
         <div
           style={{
@@ -264,7 +264,7 @@ export default function Map({
           <h1>Canvas is loading..</h1>
         </div>
       )}
-      <canvas
+      <Canvas
         ref={canvasRef}
         width={mapSize.width}
         height={mapSize.height}
@@ -278,7 +278,6 @@ export default function Map({
             -viewportTopLeft.y * MAX_SCALE * scale +
             'px)'
         }}
-        className={styles.canvas}
       />
       <div
         style={{ position: 'absolute', background: 'green', color: 'white' }}
@@ -288,9 +287,8 @@ export default function Map({
         <pre>viewportTopLeft: {JSON.stringify(viewportTopLeft)}</pre>
       </div>
       {/* Center tile cursor */}
-      <div
+      <CursorParent
         onMouseDown={startPan}
-        className={styles.cursorparent}
         ref={cursorParentRef}
         style={{
           width: mapSize.width + 'px',
@@ -302,8 +300,7 @@ export default function Map({
           }px) scale(${scale * MAX_SCALE})`
         }}
       >
-        <div
-          className={styles.cursor}
+        <Cursor
           style={{
             background: cursorColour,
             transform:
@@ -315,8 +312,55 @@ export default function Map({
           }}
         >
           cursor
-        </div>
-      </div>
-    </div>
+        </Cursor>
+      </CursorParent>
+    </MainContent>
   )
 }
+
+const Canvas = styled.canvas`
+  image-rendering: optimizeSpeed;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: pixelated;
+  image-rendering: -o-crisp-edges;
+  image-rendering: optimize-contrast;
+  -ms-interpolation-mode: nearest-neighbor;
+  z-index: 0;
+  position: absolute;
+  background: #fff;
+  outline: 1px white solid;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+`
+
+const Cursor = styled.div`
+  width: 100px;
+  height: 100px;
+  transform-origin: top left;
+  position: absolute;
+  will-change: transform;
+  z-index: 3;
+`
+
+const CursorParent = styled.div`
+  position: absolute;
+  font-size: 0;
+  z-index: 3;
+  width: 0;
+  height: 0;
+  flex-shrink: 0;
+  transform-origin: top left;
+  box-shadow: 0 0 0 0.07px #c6c4c4, 0 0 0 0.24px white, 0 0 0 0.35px #484848;
+`
+
+const MainContent = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  right: 0;
+  overflow: hidden;
+  z-index: 1;
+`
