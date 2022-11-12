@@ -45,7 +45,7 @@ function generateTiles() {
 
 export default function Map({ setPosition, cursorColour }) {
   //TODO diff datastructure
-  const tiles = generateTiles()
+  const [tiles, setTiles] = useState(generateTiles())
   //const tilesB =
 
   const canvasRef = useRef(null)
@@ -196,10 +196,10 @@ export default function Map({ setPosition, cursorColour }) {
 
   // add event listener on canvas for mouse position
   useEffect(() => {
-    const canvasElem = canvasRef.current
+    /*const canvasElem = canvasRef.current
     if (canvasElem === null) {
       return
-    }
+    }*/
 
     function handleUpdateMouse(event: MouseEvent) {
       event.preventDefault()
@@ -216,20 +216,20 @@ export default function Map({ setPosition, cursorColour }) {
       }
     }
     //console.log('adding mouse listener')
-    canvasElem.addEventListener('mousemove', handleUpdateMouse)
-    canvasElem.addEventListener('wheel', handleUpdateMouse)
+    document.addEventListener('mousemove', handleUpdateMouse)
+    document.addEventListener('wheel', handleUpdateMouse)
     return () => {
-      canvasElem.removeEventListener('mousemove', handleUpdateMouse)
-      canvasElem.removeEventListener('wheel', handleUpdateMouse)
+      document.removeEventListener('mousemove', handleUpdateMouse)
+      document.removeEventListener('wheel', handleUpdateMouse)
     }
   }, [])
 
   // add event listener on canvas for zoom
   useEffect(() => {
-    const canvasElem = canvasRef.current
+    /*const canvasElem = canvasRef.current
     if (canvasElem === null) {
       return
-    }
+    }*/
     //console.log('adding wheel listener, canvas:', canvasElem)
     function handleWheel(event: WheelEvent) {
       event.preventDefault()
@@ -260,8 +260,8 @@ export default function Map({ setPosition, cursorColour }) {
       //}
     }
 
-    canvasElem.addEventListener('wheel', handleWheel)
-    return () => canvasElem.removeEventListener('wheel', handleWheel)
+    document.addEventListener('wheel', handleWheel)
+    return () => document.removeEventListener('wheel', handleWheel)
   }, [/*context,*/ mousePos.x, mousePos.y, viewportTopLeft, scale])
 
   // draw initial tile canvas
@@ -350,17 +350,16 @@ export default function Map({ setPosition, cursorColour }) {
   }*/
 
   return (
-    <div id='mainContent' ref={contentRef} className={styles.mainContent}>
+    <div id='mainContent' ref={contentRef} className={styles.maincontent}>
       {/*canvasSize.width == 0 && (
         <div style={{ position: 'absolute' }}>
           <p>Canvas is loading..</p>
         </div>
       )*/}
       <canvas
-        onMouseDown={startPan}
         ref={canvasRef}
-        //width={mapSize.width}
-        //height={mapSize.height}
+        width={mapSize.width}
+        height={mapSize.height}
         style={{
           width: scale * canvasSize.width * MAX_SCALE + 'px',
           height: scale * canvasSize.height * MAX_SCALE + 'px',
@@ -384,9 +383,12 @@ export default function Map({ setPosition, cursorColour }) {
       </div>
       {/* Center tile cursor */}
       <div
+        onMouseDown={startPan}
         className={styles.cursorparent}
         ref={cursorParentRef}
         style={{
+          width: mapSize.width + 'px',
+          height: mapSize.height + 'px',
           transform: `translate(${
             viewportTopLeft.x * scale * -MAX_SCALE + parentSize.width
           }px, ${
