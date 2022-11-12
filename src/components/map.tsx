@@ -26,7 +26,7 @@ export default function Map({
   cursorColour?: Colour | `url('/cursor.svg')`
 }) {
   //TODO diff datastructure
-  const [tiles, setTiles] = useState(generateTiles(mapSize))
+  const [tiles, setTiles] = useState(() => generateTiles(mapSize))
   //const tilesB =
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
