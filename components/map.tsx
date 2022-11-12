@@ -11,6 +11,11 @@ import { addPoints, diffPoints, scalePoint } from '../helpers/math'
 import { colours, pixelSize } from './layout'
 
 const mapSize = { width: 1000, height: 1000 }
+
+type Point = {
+  x: number
+  y: number
+}
 const ORIGIN = Object.freeze({ x: 0, y: 0 })
 
 const MAX_SCALE = 50
