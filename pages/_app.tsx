@@ -4,6 +4,7 @@ import { SessionProvider } from 'next-auth/react'
 import type { AppProps } from 'next/app'
 import { useState } from 'react'
 
+import { ApiContextProvider } from 'src/context/ApiContext'
 import { GuildContextProvider } from 'src/context/GuildContext'
 
 export default function App({
@@ -14,18 +15,20 @@ export default function App({
 
   return (
     <SessionProvider session={session}>
-      <GuildContextProvider>
-        <QueryClientProvider client={queryClient}>
-          <style jsx global>
-            {`
-              body {
-                margin: 0px;
-              }
-            `}
-          </style>
-          <Component {...pageProps} />
-        </QueryClientProvider>
-      </GuildContextProvider>
+      <QueryClientProvider client={queryClient}>
+        <GuildContextProvider>
+          <ApiContextProvider>
+            <style jsx global>
+              {`
+                body {
+                  margin: 0px;
+                }
+              `}
+            </style>
+            <Component {...pageProps} />
+          </ApiContextProvider>
+        </GuildContextProvider>
+      </QueryClientProvider>
     </SessionProvider>
   )
 }

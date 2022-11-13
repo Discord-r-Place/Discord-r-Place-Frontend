@@ -1,6 +1,6 @@
 import {
-  useEffect,
   useCallback,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState
@@ -9,6 +9,7 @@ import styled from 'styled-components'
 
 import { Colour, Point, Position, Size } from 'src/components/Types'
 import { pixelSize } from 'src/components/layout'
+import { useApiContext } from 'src/context/ApiContext'
 import { useGuildContext } from 'src/context/GuildContext'
 import { generateTiles } from 'src/helpers/GenerateTiles'
 import { addPoints, diffPoints, scalePoint } from 'src/helpers/math'
@@ -26,6 +27,10 @@ export default function Map({
   setPosition: (position: Position) => void
   cursorColour?: Colour | `url('/cursor.svg')`
 }) {
+  const image = useApiContext()
+
+  console.log(image)
+
   //TODO diff datastructure
   const [tiles, setTiles] = useState(() => generateTiles(mapSize))
   //const tilesB =
