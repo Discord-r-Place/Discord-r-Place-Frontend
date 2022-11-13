@@ -14,8 +14,6 @@ import { useGuildContext } from 'src/context/GuildContext'
 import { ByteToColour } from 'src/helpers/Colours'
 import { addPoints, diffPoints, scalePoint } from 'src/helpers/math'
 
-const mapSize: Size = { width: 1000, height: 1000 }
-
 const ORIGIN = Object.freeze({ x: 0, y: 0 })
 const ORIGIN_SIZE = Object.freeze({ width: 0, height: 0 }) // highly dubious
 const MAX_SCALE = 50
@@ -57,8 +55,8 @@ export default function Map({
 
   const cursorParentRef = useRef(null)
   const [canvasSize, setCanvasSize] = useState({
-    width: mapSize.width,
-    height: mapSize.height
+    width: apiContext.image?.width ?? 1920,
+    height: apiContext.image?.height ?? 1080
   })
   const [minZoom, setMinZoom] = useState(0)
 
@@ -273,8 +271,8 @@ export default function Map({
       )}
       <Canvas
         ref={canvasRef}
-        width={mapSize.width}
-        height={mapSize.height}
+        width={apiContext.image?.width}
+        height={apiContext.image?.height}
         style={{
           width: scale * canvasSize.width * MAX_SCALE + 'px',
           height: scale * canvasSize.height * MAX_SCALE + 'px',
@@ -297,8 +295,8 @@ export default function Map({
         onMouseDown={startPan}
         ref={cursorParentRef}
         style={{
-          width: mapSize.width + 'px',
-          height: mapSize.height + 'px',
+          width: apiContext.image?.width + 'px',
+          height: apiContext.image?.height + 'px',
           transform: `translate(${
             viewportTopLeft.x * scale * -MAX_SCALE + parentSize.width
           }px, ${
