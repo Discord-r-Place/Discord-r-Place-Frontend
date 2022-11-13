@@ -9,6 +9,7 @@ import styled from 'styled-components'
 
 import { Colour, Point, Position, Size } from 'src/components/Types'
 import { pixelSize } from 'src/components/layout'
+import { useGuildContext } from 'src/context/GuildContext'
 import { generateTiles } from 'src/helpers/GenerateTiles'
 import { addPoints, diffPoints, scalePoint } from 'src/helpers/math'
 
@@ -245,6 +246,7 @@ export default function Map({
     ctx.clearRect(x, y, 1, 1)
     ctx.fillRect(x, y, 1, 1)
   }*/
+  const guidContext = useGuildContext()
 
   return (
     <MainContent id='mainContent' ref={contentRef}>
@@ -283,6 +285,7 @@ export default function Map({
         <pre>scale: {scale}</pre>
         <pre>offset: {JSON.stringify(offset)}</pre>
         <pre>viewportTopLeft: {JSON.stringify(viewportTopLeft)}</pre>
+        <pre>guild: {guidContext.guildId ?? 'none'}</pre>
       </PixelDebugBox>
       {/* Center tile cursor */}
       <CursorParent
