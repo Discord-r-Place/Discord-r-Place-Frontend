@@ -7,12 +7,11 @@ import {
 } from 'react'
 import styled from 'styled-components'
 
-import { Colour, Point, Position, Size, Image } from 'src/components/Types'
+import { Colour, Image, Point, Position, Size } from 'src/components/Types'
 import { pixelSize } from 'src/components/layout'
 import { useApiContext } from 'src/context/ApiContext'
 import { useGuildContext } from 'src/context/GuildContext'
 import { ByteToColour } from 'src/helpers/Colours'
-import { generateTiles } from 'src/helpers/GenerateTiles'
 import { addPoints, diffPoints, scalePoint } from 'src/helpers/math'
 
 const mapSize: Size = { width: 1000, height: 1000 }
@@ -29,6 +28,28 @@ export default function Map({
   cursorColour?: Colour | `url('/cursor.svg')`
 }) {
   const apiContext = useApiContext()
+  const currentImage = useRef<Image>()
+
+  useEffect(() => {
+    // No render
+    if (apiContext.image === currentImage.current) return
+
+    const canvas = canvasRef.current!
+    const context = canvas.getContext('2d')!
+    setRenderContext(context)
+
+    if (apiContext.image) {
+      if (currentImage.current === undefined) {
+        // Initial render
+        DrawImage(context, apiContext.image)
+      } else {
+        // Update render
+        UpdateImage(context, currentImage.current, apiContext.image)
+      }
+    }
+
+    currentImage.current = apiContext.image
+  }, [apiContext.image])
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -184,15 +205,6 @@ export default function Map({
     return () => document.removeEventListener('wheel', handleWheel)
   }, [mousePos.x, mousePos.y, viewportTopLeft, scale, minZoom])
 
-  // draw initial tile canvas
-  useLayoutEffect(() => {
-    console.log('drawing initial canvas')
-    const canvas = canvasRef.current!
-    const context = canvas.getContext('2d')!
-    setRenderContext(context)
-    DrawImage(context, apiContext.image)
-  }, [apiContext.image])
-
   // resize canvas
   useEffect(() => {
     transform((viewportTopLeft) => viewportTopLeft, scale)
@@ -332,6 +344,30 @@ function DrawImage(ctx: CanvasRenderingContext2D, image?: Image) {
       const byte = image.data[x + y * image.width]
       ctx.fillStyle = ByteToColour(byte)
       ctx.fillRect(x, y, pixelSize, pixelSize)
+    }
+  }
+}
+
+function UpdateImage(
+  ctx: CanvasRenderingContext2D,
+  oldImage: Image,
+  newImage: Image
+) {
+  if (
+    oldImage.width !== newImage.width ||
+    oldImage.height !== newImage.height
+  ) {
+    DrawImage(ctx, newImage)
+  } else {
+    for (let x = 0; x < oldImage.width; x++) {
+      for (let y = 0; y < oldImage.height; y++) {
+        const oldByte = oldImage.data[x + y * oldImage.width]
+        const newByte = newImage.data[x + y * newImage.width]
+        if (oldByte !== newByte) {
+          ctx.fillStyle = ByteToColour(newByte)
+          ctx.fillRect(x, y, pixelSize, pixelSize)
+        }
+      }
     }
   }
 }

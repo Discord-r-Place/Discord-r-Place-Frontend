@@ -48,8 +48,8 @@ export function ApiContextProvider({
       const buffer = await blob.arrayBuffer()
 
       const bytes = new Uint8Array(buffer)
-      const x = bytes[0] * 255 + bytes[1]
-      const y = bytes[2] * 255 + bytes[3]
+      const x = (bytes[0] << 8) + bytes[1]
+      const y = (bytes[2] << 8) + bytes[3]
       const colour = bytes[4]
 
       setImageData((oldImage) => {
@@ -85,8 +85,8 @@ export function ApiContextProvider({
       const buffer = await blob.arrayBuffer()
       const dimensions = new Uint8Array(buffer.slice(0, 4))
 
-      const width = dimensions[0] * 256 + dimensions[1]
-      const height = dimensions[2] * 256 + dimensions[3]
+      const width = (dimensions[0] << 8) + dimensions[1]
+      const height = (dimensions[2] << 8) + dimensions[3]
       const image = new Uint8Array(buffer.slice(4))
 
       return { width, height, image }
