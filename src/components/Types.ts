@@ -20,4 +20,10 @@ export type Tile = {
   colour: string
 }
 
+export type Image = {
+  width: number
+  height: number
+  data: Uint8Array
+}
+
 export type Colour = 'white' | 'red' | 'yellow' | 'green' | 'cyan' | 'blue'

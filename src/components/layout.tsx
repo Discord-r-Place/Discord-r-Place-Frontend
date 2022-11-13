@@ -4,6 +4,7 @@ import styled from 'styled-components'
 import { Colour, Position } from 'src/components/Types'
 import Map from 'src/components/map'
 import Palette from 'src/components/palette'
+import { useApiContext } from 'src/context/ApiContext'
 
 export const pixelSize = 1
 // Mock palette colours
@@ -27,12 +28,18 @@ export default function Layout() {
   // The colour of the tile we are placing
   const [cursorColour, setCursorColour] = useState<Colour>()
 
+  const apiContext = useApiContext()
+
+  if (!apiContext.image || !apiContext.setPixel) return <div>Select Guild</div>
+
   /**
    * Send pixel update to server
    */
   function updatePixel() {
-    console.log(
-      `TODO: pixel (${currentPosition.x}, ${currentPosition.y}) is now ${cursorColour}, send to server`
+    return apiContext.setPixel!(
+      currentPosition.x,
+      currentPosition.y,
+      cursorColour!
     )
   }
 

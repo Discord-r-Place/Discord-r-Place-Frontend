@@ -4,6 +4,9 @@ export async function FetchGuilds(accessToken: string) {
       authorization: `Bearer ${accessToken}`
     }
   })
+
+  if (response.status !== 200) throw new Error('Failed to fetch guilds.')
+
   const data = await response.json()
   return data as Guild[]
 }

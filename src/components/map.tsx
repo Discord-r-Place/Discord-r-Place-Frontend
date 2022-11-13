@@ -1,19 +1,18 @@
 import {
-  useEffect,
   useCallback,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState
 } from 'react'
 import styled from 'styled-components'
 
-import { Colour, Point, Position, Size, Tile } from 'src/components/Types'
+import { Colour, Image, Point, Position, Size } from 'src/components/Types'
 import { pixelSize } from 'src/components/layout'
+import { useApiContext } from 'src/context/ApiContext'
 import { useGuildContext } from 'src/context/GuildContext'
-import { generateTiles } from 'src/helpers/GenerateTiles'
+import { ByteToColour } from 'src/helpers/Colours'
 import { addPoints, diffPoints, scalePoint } from 'src/helpers/math'
-
-const mapSize: Size = { width: 1000, height: 1000 }
 
 const ORIGIN = Object.freeze({ x: 0, y: 0 })
 const ORIGIN_SIZE = Object.freeze({ width: 0, height: 0 }) // highly dubious
@@ -26,9 +25,29 @@ export default function Map({
   setPosition: (position: Position) => void
   cursorColour?: Colour | `url('/cursor.svg')`
 }) {
-  //TODO diff datastructure
-  const [tiles, setTiles] = useState(() => generateTiles(mapSize))
-  //const tilesB =
+  const apiContext = useApiContext()
+  const currentImage = useRef<Image>()
+
+  useEffect(() => {
+    // No render
+    if (apiContext.image === currentImage.current) return
+
+    const canvas = canvasRef.current!
+    const context = canvas.getContext('2d')!
+    setRenderContext(context)
+
+    if (apiContext.image) {
+      if (currentImage.current === undefined) {
+        // Initial render
+        DrawImage(context, apiContext.image)
+      } else {
+        // Update render
+        UpdateImage(context, currentImage.current, apiContext.image)
+      }
+    }
+
+    currentImage.current = apiContext.image
+  }, [apiContext.image])
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -36,8 +55,8 @@ export default function Map({
 
   const cursorParentRef = useRef(null)
   const [canvasSize, setCanvasSize] = useState({
-    width: mapSize.width,
-    height: mapSize.height
+    width: apiContext.image?.width ?? 1920,
+    height: apiContext.image?.height ?? 1080
   })
   const [minZoom, setMinZoom] = useState(0)
 
@@ -184,14 +203,6 @@ export default function Map({
     return () => document.removeEventListener('wheel', handleWheel)
   }, [mousePos.x, mousePos.y, viewportTopLeft, scale, minZoom])
 
-  // draw initial tile canvas
-  useLayoutEffect(() => {
-    const canvas = canvasRef.current!
-    const context = canvas.getContext('2d')!
-    setRenderContext(context)
-    DrawTiles(context, tiles)
-  }, [tiles])
-
   // resize canvas
   useEffect(() => {
     transform((viewportTopLeft) => viewportTopLeft, scale)
@@ -260,8 +271,8 @@ export default function Map({
       )}
       <Canvas
         ref={canvasRef}
-        width={mapSize.width}
-        height={mapSize.height}
+        width={apiContext.image?.width}
+        height={apiContext.image?.height}
         style={{
           width: scale * canvasSize.width * MAX_SCALE + 'px',
           height: scale * canvasSize.height * MAX_SCALE + 'px',
@@ -284,8 +295,8 @@ export default function Map({
         onMouseDown={startPan}
         ref={cursorParentRef}
         style={{
-          width: mapSize.width + 'px',
-          height: mapSize.height + 'px',
+          width: apiContext.image?.width + 'px',
+          height: apiContext.image?.height + 'px',
           transform: `translate(${
             viewportTopLeft.x * scale * -MAX_SCALE + parentSize.width
           }px, ${
@@ -314,9 +325,9 @@ export default function Map({
 /**
  * draw all tiles
  * @param ctx canvas context
- * @param tiles array of tiles
+ * @param image array of tiles
  */
-function DrawTiles(ctx: CanvasRenderingContext2D, tiles: Tile[]) {
+function DrawImage(ctx: CanvasRenderingContext2D, image?: Image) {
   /*console.log(
     'full draw',
     ctx.canvas.width,
@@ -324,9 +335,38 @@ function DrawTiles(ctx: CanvasRenderingContext2D, tiles: Tile[]) {
     ctx.canvas.style.left
   )*/
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-  for (const tile of tiles) {
-    ctx.fillStyle = tile.colour
-    ctx.fillRect(tile.x, tile.y, pixelSize, pixelSize)
+
+  if (!image) return
+  for (let x = 0; x < image.width; x++) {
+    for (let y = 0; y < image.height; y++) {
+      const byte = image.data[x + y * image.width]
+      ctx.fillStyle = ByteToColour(byte)
+      ctx.fillRect(x, y, pixelSize, pixelSize)
+    }
+  }
+}
+
+function UpdateImage(
+  ctx: CanvasRenderingContext2D,
+  oldImage: Image,
+  newImage: Image
+) {
+  if (
+    oldImage.width !== newImage.width ||
+    oldImage.height !== newImage.height
+  ) {
+    DrawImage(ctx, newImage)
+  } else {
+    for (let x = 0; x < oldImage.width; x++) {
+      for (let y = 0; y < oldImage.height; y++) {
+        const oldByte = oldImage.data[x + y * oldImage.width]
+        const newByte = newImage.data[x + y * newImage.width]
+        if (oldByte !== newByte) {
+          ctx.fillStyle = ByteToColour(newByte)
+          ctx.fillRect(x, y, pixelSize, pixelSize)
+        }
+      }
+    }
   }
 }
 
