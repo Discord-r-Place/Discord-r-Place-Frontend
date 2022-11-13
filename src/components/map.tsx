@@ -7,7 +7,7 @@ import {
 } from 'react'
 import styled from 'styled-components'
 
-import { Colour, Point, Position, Size } from 'src/components/Types'
+import { Colour, Point, Position, Size, Tile } from 'src/components/Types'
 import { pixelSize } from 'src/components/layout'
 import { generateTiles } from 'src/helpers/GenerateTiles'
 import { addPoints, diffPoints, scalePoint } from 'src/helpers/math'
@@ -70,9 +70,14 @@ export default function Map({
       })
   }, [viewportTopLeft, scale, setPosition])
 
-  function transform(newViewportTopLeft: Point, zoomScale: number) {
+  function transform(
+    getNewViewPortTopLeft: (oldViewPortTopLeft: Point) => Point,
+    zoomScale: number
+  ) {
     setScale(zoomScale)
-    setViewportTopLeft(newViewportTopLeft)
+    setViewportTopLeft((oldViewPortTopLeft) =>
+      getNewViewPortTopLeft(oldViewPortTopLeft)
+    )
     const canvas = canvasRef.current!
     setCanvasSize({
       width: canvas.width,
@@ -114,11 +119,14 @@ export default function Map({
         scale * MAX_SCALE
       )
       //context.translate(offsetDiff.x, offsetDiff.y)
-      const newViewportTopLeft = diffPoints(viewportTopLeft, offsetDiff)
-      transform(newViewportTopLeft, scale)
+      transform(
+        (viewportTopLeft) => diffPoints(viewportTopLeft, offsetDiff),
+        scale
+      )
+
       //isResetRef.current = false
     }
-  }, [/*context, */ offset, scale])
+  }, [offset, scale])
 
   // add event listeners for mouse position
   useEffect(() => {
@@ -162,12 +170,11 @@ export default function Map({
         x: (mousePos.x * (zoom - 1)) / (zoomScale * MAX_SCALE),
         y: (mousePos.y * (zoom - 1)) / (zoomScale * MAX_SCALE)
       }
-      const newViewportTopLeft = addPoints(
-        viewportTopLeft,
-        viewportTopLeftDelta
-      )
 
-      transform(newViewportTopLeft, zoomScale)
+      transform(
+        (viewportTopLeft) => addPoints(viewportTopLeft, viewportTopLeftDelta),
+        zoomScale
+      )
       //console.log('scale', zoomScale, 'viewport top left', newViewportTopLeft)
       //console.log('STATE | scale', scale, 'viewport top left', viewportTopLeft)
     }
@@ -181,12 +188,12 @@ export default function Map({
     const canvas = canvasRef.current!
     const context = canvas.getContext('2d')!
     setRenderContext(context)
-    fullDraw(context)
-  }, [])
+    DrawTiles(context, tiles)
+  }, [tiles])
 
   // resize canvas
   useEffect(() => {
-    transform(viewportTopLeft, scale)
+    transform((viewportTopLeft) => viewportTopLeft, scale)
     handleResize()
 
     function handleResize() {
@@ -206,28 +213,13 @@ export default function Map({
     window.addEventListener('resize', handleResize)
 
     return () => window.removeEventListener('resize', handleResize)
-  }, [])
+  }, [canvasSize.height, canvasSize.width, scale])
 
   useEffect(() => {
     // clamp scale
     if (scale < minZoom) setScale(minZoom)
     if (scale > 1) setScale(1)
   }, [minZoom, scale])
-
-  // draw all tiles
-  const fullDraw = (ctx: CanvasRenderingContext2D) => {
-    /*console.log(
-      'full draw',
-      ctx.canvas.width,
-      ctx.canvas.height,
-      ctx.canvas.style.left
-    )*/
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-    for (const tile of tiles) {
-      ctx.fillStyle = tile.colour
-      ctx.fillRect(tile.x, tile.y, pixelSize, pixelSize)
-    }
-  }
 
   /*function set(ctx, x, y, b) {
     board[(x % canvas.width) + (y % canvas.height) * canvas.width] = b
@@ -314,6 +306,25 @@ export default function Map({
       </CursorParent>
     </MainContent>
   )
+}
+
+/**
+ * draw all tiles
+ * @param ctx canvas context
+ * @param tiles array of tiles
+ */
+function DrawTiles(ctx: CanvasRenderingContext2D, tiles: Tile[]) {
+  /*console.log(
+    'full draw',
+    ctx.canvas.width,
+    ctx.canvas.height,
+    ctx.canvas.style.left
+  )*/
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+  for (const tile of tiles) {
+    ctx.fillStyle = tile.colour
+    ctx.fillRect(tile.x, tile.y, pixelSize, pixelSize)
+  }
 }
 
 const Canvas = styled.canvas`

@@ -14,4 +14,10 @@ export type Size = {
   height: number
 }
 
+export type Tile = {
+  x: number
+  y: number
+  colour: string
+}
+
 export type Colour = 'white' | 'red' | 'yellow' | 'green' | 'cyan' | 'blue'
