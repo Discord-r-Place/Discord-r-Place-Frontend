@@ -5,7 +5,21 @@ import Image from 'next/image'
 import styled, { css } from 'styled-components'
 
 import { useGuildContext } from 'src/context/GuildContext'
-import { FetchGuilds } from 'src/helpers/FetchGuilds'
+import { FetchGuilds, Guild } from 'src/helpers/FetchGuilds'
+
+function GuildProfilePicture({ guild }: { guild: Guild }) {
+  if (guild.icon) {
+    return <VerticallyAlignedImage
+      src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`}
+      alt={`${guild.name} icon`}
+      width={20}
+      height={20}
+    />
+  }
+
+  let firstCharacters = guild.name.split(' ').map((word: string) => word[0]).join('').substring(0, 3);
+  return <FallBackServerProfilePictureDiv>{firstCharacters}</FallBackServerProfilePictureDiv>
+}
 
 export function UserProfile() {
   const { data: session } = useSession({
@@ -45,12 +59,8 @@ export function UserProfile() {
             >
               {guilds.map((guild) => (
                 <Select.Option key={guild.id} value={guild.id}>
-                  <VerticallyAlignedImage
-                    src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`}
-                    alt={`${guild.name} icon`}
-                    width={20}
-                    height={20}
-                  />{' '}
+                  <GuildProfilePicture guild={guild} />
+                  {' '}
                   {guild.name}
                 </Select.Option>
               ))}
@@ -96,4 +106,15 @@ const ContentWrapper = styled.div`
 
 const VerticallyAlignedImage = styled(Image)`
   vertical-align: middle;
+`
+
+const FallBackServerProfilePictureDiv = styled.div`
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+  display: inline-block;
+  text-align: center;
+  font-size: 10px;
+  line-height: 20px;
+  background-color: #7289da;
 `

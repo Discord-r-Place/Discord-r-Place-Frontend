@@ -8,7 +8,7 @@ export async function FetchGuilds(accessToken: string) {
   return data as Guild[]
 }
 
-type Guild = {
+export type Guild = {
   id: string
   name: string
   icon: string
