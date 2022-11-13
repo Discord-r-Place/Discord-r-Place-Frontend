@@ -7,10 +7,11 @@ import {
 } from 'react'
 import styled from 'styled-components'
 
-import { Colour, Point, Position, Size, Tile } from 'src/components/Types'
+import { Colour, Point, Position, Size, Image } from 'src/components/Types'
 import { pixelSize } from 'src/components/layout'
 import { useApiContext } from 'src/context/ApiContext'
 import { useGuildContext } from 'src/context/GuildContext'
+import { ByteToColour } from 'src/helpers/Colours'
 import { generateTiles } from 'src/helpers/GenerateTiles'
 import { addPoints, diffPoints, scalePoint } from 'src/helpers/math'
 
@@ -27,13 +28,7 @@ export default function Map({
   setPosition: (position: Position) => void
   cursorColour?: Colour | `url('/cursor.svg')`
 }) {
-  const image = useApiContext()
-
-  console.log(image)
-
-  //TODO diff datastructure
-  const [tiles, setTiles] = useState(() => generateTiles(mapSize))
-  //const tilesB =
+  const apiContext = useApiContext()
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -191,11 +186,12 @@ export default function Map({
 
   // draw initial tile canvas
   useLayoutEffect(() => {
+    console.log('drawing initial canvas')
     const canvas = canvasRef.current!
     const context = canvas.getContext('2d')!
     setRenderContext(context)
-    DrawTiles(context, tiles)
-  }, [tiles])
+    DrawImage(context, apiContext.image)
+  }, [apiContext.image])
 
   // resize canvas
   useEffect(() => {
@@ -319,9 +315,9 @@ export default function Map({
 /**
  * draw all tiles
  * @param ctx canvas context
- * @param tiles array of tiles
+ * @param image array of tiles
  */
-function DrawTiles(ctx: CanvasRenderingContext2D, tiles: Tile[]) {
+function DrawImage(ctx: CanvasRenderingContext2D, image?: Image) {
   /*console.log(
     'full draw',
     ctx.canvas.width,
@@ -329,9 +325,14 @@ function DrawTiles(ctx: CanvasRenderingContext2D, tiles: Tile[]) {
     ctx.canvas.style.left
   )*/
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
-  for (const tile of tiles) {
-    ctx.fillStyle = tile.colour
-    ctx.fillRect(tile.x, tile.y, pixelSize, pixelSize)
+
+  if (!image) return
+  for (let x = 0; x < image.width; x++) {
+    for (let y = 0; y < image.height; y++) {
+      const byte = image.data[x + y * image.width]
+      ctx.fillStyle = ByteToColour(byte)
+      ctx.fillRect(x, y, pixelSize, pixelSize)
+    }
   }
 }
 

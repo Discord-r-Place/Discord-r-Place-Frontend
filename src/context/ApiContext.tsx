@@ -1,13 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 import getConfig from 'next/config'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 
+import { Colour, Image } from 'src/components/Types'
 import { useGuildContext } from 'src/context/GuildContext'
+import { ColourToByte } from 'src/helpers/Colours'
 
 type ApiContextType =
   | {
       image?: Image
+      setPixel?(x: number, y: number, colour: Colour): Promise<void>
     }
   | undefined
 
@@ -20,6 +23,8 @@ export function ApiContextProvider({
 }) {
   const { guildId } = useGuildContext()
   const session = useSession()!
+
+  const webSocket = useRef<WebSocket>()
 
   const [imageWidth, setImageWidth] = useState<number>()
   const [imageHeight, setImageHeight] = useState<number>()
@@ -38,22 +43,33 @@ export function ApiContextProvider({
       ws.send(session.data?.accessToken!)
     }
 
-    ws.onmessage = (event) => {
-      // TODO
-      console.log(event.data)
+    ws.onmessage = async (event) => {
+      const blob = event.data as Blob
+      const buffer = await blob.arrayBuffer()
 
-      // setImageData(oldImage => oldImage[imageWidth] )
+      const bytes = new Uint8Array(buffer)
+      const x = bytes[0] * 255 + bytes[1]
+      const y = bytes[2] * 255 + bytes[3]
+      const colour = bytes[4]
+
+      setImageData((oldImage) => {
+        if (!oldImage || !imageWidth) return undefined
+        var newImage = new Uint8Array(oldImage)
+        newImage[imageWidth * y + x] = colour
+        return newImage
+      })
     }
+
+    webSocket.current = ws
 
     return () => {
       ws.close()
     }
-  }, [guildId, session.data?.accessToken])
+  }, [guildId, imageWidth, session.data?.accessToken])
 
   const { data: initialImage } = useQuery(
     ['image', guildId],
     async () => {
-      // getpublic runtime config
       const {
         publicRuntimeConfig: { API_URL }
       } = getConfig()
@@ -75,7 +91,7 @@ export function ApiContextProvider({
 
       return { width, height, image }
     },
-    { enabled: !!guildId }
+    { enabled: !!guildId, staleTime: 1000 * 60 * 60 }
   )
 
   useEffect(() => {
@@ -92,7 +108,20 @@ export function ApiContextProvider({
         image:
           imageWidth && imageHeight && imageData
             ? { width: imageWidth, height: imageHeight, data: imageData }
-            : undefined
+            : undefined,
+        setPixel: guildId
+          ? async (x, y, colour) => {
+              webSocket.current?.send(
+                new Uint8Array([
+                  x >> 8,
+                  x & 0xff,
+                  y >> 8,
+                  y & 0xff,
+                  ColourToByte(colour)
+                ])
+              )
+            }
+          : undefined
       }}
     >
       {children}
@@ -107,10 +136,4 @@ export function useApiContext() {
     throw new Error('useApiContext must be used within a ApiContextProvider')
 
   return context
-}
-
-type Image = {
-  width: number
-  height: number
-  data: Uint8Array
 }
