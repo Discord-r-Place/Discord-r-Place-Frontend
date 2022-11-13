@@ -1,10 +1,10 @@
-import { Size } from 'src/components/Types'
+import { Size, Tile } from 'src/components/Types'
 import { colours } from 'src/components/layout'
 
 /**
  * Generate array of coloured positions (tiles)
  */
-export function generateTiles(mapSize: Size) {
+export function generateTiles(mapSize: Size): Tile[] {
   // Mock tiles
   const small = [
     { x: 0, y: 0, colour: 'red' },
