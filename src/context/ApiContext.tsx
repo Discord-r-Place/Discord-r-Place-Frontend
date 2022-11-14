@@ -10,9 +10,8 @@ import {
   useState
 } from 'react'
 
-import { Colour, Image } from 'src/components/Types'
+import { Image, ColourPalette } from 'src/components/Types'
 import { useGuildContext } from 'src/context/GuildContext'
-import { ColourToByte } from 'src/helpers/Colours'
 import { useWebSocket } from 'src/helpers/useWebSocket'
 
 type ApiContextType =
@@ -25,7 +24,7 @@ type ApiContextType =
   | {
       status: 'success'
       image: Image
-      setPixel(x: number, y: number, colour: Colour): Promise<void>
+      setPixel(x: number, y: number, colour: number): Promise<void>
     }
   | {
       status: 'error'
@@ -57,14 +56,14 @@ export function ApiContextProvider({
   const onOpen = useCallback(
     async (ws: WebSocket) => {
       ws.send(session.data?.accessToken!)
-      return async (x: number, y: number, colour: Colour) => {
+      return async (x: number, y: number, colourIndex: number) => {
         ws.send(
           new Uint8Array([
             x >> 8,
             x & 0xff,
             y >> 8,
             y & 0xff,
-            ColourToByte(colour)
+            colourIndex
           ])
         )
       }
@@ -93,13 +92,35 @@ export function ApiContextProvider({
   )
 
   const ws = useWebSocket<
-    (x: number, y: number, colour: Colour) => Promise<void>
+    (x: number, y: number, colour: number) => Promise<void>
   >({
     url: session.data ? url : undefined,
     onOpen,
     onMessage
   })
   const { status: wsStatus } = ws
+
+  const { data: palette, refetch: refetchPalette } = useQuery(
+    ['palette', guildId],
+    async () => {
+      const {
+        publicRuntimeConfig: { API_URL }
+      } = getConfig()
+
+      const response = await fetch(`${API_URL}servers/${guildId}/palette`, {
+        headers: {
+          Authorization: `Bearer ${session.data?.accessToken!}`
+        }
+      })
+
+      const data = await response.json();
+
+      const colours: ColourPalette = data.map((colourValue: number) => { return { r: (colourValue >> 16) & 0xFF, g: (colourValue >> 8) & 0xFF, b: colourValue & 0xFF } });
+
+      return colours;
+    },
+    { enabled: wsStatus === "loading", staleTime: 1000 * 60 * 60 }
+  );
 
   const { data: initialImage, refetch } = useQuery(
     ['image', guildId],
@@ -129,8 +150,8 @@ export function ApiContextProvider({
   )
 
   useEffect(() => {
-    if (initialImage) {
-      setImage(initialImage)
+    if (initialImage && palette) {
+      setImage({...initialImage, palette: palette});
     }
   }, [initialImage])
 
@@ -141,11 +162,11 @@ export function ApiContextProvider({
           ? {
               status: 'idle'
             }
-          : wsStatus === 'loading' || !image
+          : wsStatus === 'loading' || !image || !palette
           ? {
               status: 'loading'
             }
-          : wsStatus === 'success' && image
+          : wsStatus === 'success' && image && palette
           ? {
               status: 'success',
               setPixel: ws.successData,
@@ -154,6 +175,7 @@ export function ApiContextProvider({
           : {
               status: 'error',
               retry: async () => {
+                await refetchPalette();
                 await refetch()
                 if (wsStatus === 'error') ws.retry()
               }

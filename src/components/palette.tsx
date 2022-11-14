@@ -1,29 +1,31 @@
 import styled from 'styled-components'
 
 import { CustomButton } from 'src/components/CustomButton'
-import { Colour } from 'src/components/Types'
-import { colours } from 'src/components/layout'
+import { ColourPalette } from 'src/components/Types'
+import { toCSS } from 'src/helpers/Colours'
 
 export default function Palette({
   onClose,
-  onSelectColour,
-  onAccept
+  onSelectColourIndex,
+  onAccept,
+  palette
 }: {
   onClose: () => void
-  onSelectColour: (colour: Colour) => void
-  onAccept: () => void
+  onSelectColourIndex: (colourIndex: number) => void
+  onAccept: () => void,
+  palette: ColourPalette
 }) {
   return (
     <ColourPickerDiv>
       <ColourPalette>
-        {colours.map((colour) => {
+        {palette.map((colour, index) => {
           return (
             <PaletteItem
-              key={colour}
+              key={index}
               onClick={() => {
-                onSelectColour(colour)
+                onSelectColourIndex(index)
               }}
-              style={{ background: colour }}
+              style={{ background: toCSS(colour) }}
             />
           )
         })}
@@ -41,14 +43,18 @@ export default function Palette({
 const ColourPickerDiv = styled.div`
   display: grid;
   grid-template-row: 1fr 1fr;
+  max-width: 80vw;
 `
 
 const ColourPalette = styled.div`
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
 `
 
 const PaletteItem = styled.button`
+  flex: 0 0 11%;
   margin: 5px;
   width: 10vw;
   height: 5vw;
