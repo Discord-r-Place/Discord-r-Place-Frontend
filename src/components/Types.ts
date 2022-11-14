@@ -24,9 +24,9 @@ export type Image = {
   width: number
   height: number
   data: Uint8Array
-  palette: ImagePalette
+  palette: ColourPalette
 }
 
-export type ImagePalette = [Colour]
+export type ColourPalette = [Colour]
 
 export type Colour = { readonly r: number; readonly g: number; readonly b: number }

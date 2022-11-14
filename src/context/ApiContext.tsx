@@ -10,7 +10,7 @@ import {
   useState
 } from 'react'
 
-import { Image, ImagePalette } from 'src/components/Types'
+import { Image, ColourPalette } from 'src/components/Types'
 import { useGuildContext } from 'src/context/GuildContext'
 import { useWebSocket } from 'src/helpers/useWebSocket'
 
@@ -115,7 +115,7 @@ export function ApiContextProvider({
 
       const data = await response.json();
 
-      const colours: ImagePalette = data.map((colourValue: number) => { return { r: (colourValue >> 16) & 0xFF, g: (colourValue >> 8) & 0xFF, b: colourValue & 0xFF } });
+      const colours: ColourPalette = data.map((colourValue: number) => { return { r: (colourValue >> 16) & 0xFF, g: (colourValue >> 8) & 0xFF, b: colourValue & 0xFF } });
 
       return colours;
     },

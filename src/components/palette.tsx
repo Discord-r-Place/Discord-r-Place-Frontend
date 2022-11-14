@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 
 import { CustomButton } from 'src/components/CustomButton'
-import { ImagePalette } from 'src/components/Types'
+import { ColourPalette } from 'src/components/Types'
 import { toCSS } from 'src/helpers/Colours'
 
 export default function Palette({
@@ -13,7 +13,7 @@ export default function Palette({
   onClose: () => void
   onSelectColourIndex: (colourIndex: number) => void
   onAccept: () => void,
-  palette: ImagePalette
+  palette: ColourPalette
 }) {
   return (
     <ColourPickerDiv>
