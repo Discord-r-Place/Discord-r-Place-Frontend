@@ -45,11 +45,7 @@ export default function Layout() {
            Palette if we have selected a tile and are placing, button otherwise */}
         <Footer>
           {placing ? (
-            <PalleteBox
-              style={{
-                width: '100vw'
-              }}
-            >
+            <PalleteBox>
               current palette colour: {cursorColourIndex != undefined ? colourFromPalette(apiContext.image.palette, cursorColourIndex) : 'none'}
               <Palette
                 onClose={() => setPlacing(false)}

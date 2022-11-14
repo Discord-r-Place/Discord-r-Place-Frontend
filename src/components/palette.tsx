@@ -43,14 +43,18 @@ export default function Palette({
 const ColourPickerDiv = styled.div`
   display: grid;
   grid-template-row: 1fr 1fr;
+  max-width: 80vw;
 `
 
 const ColourPalette = styled.div`
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
 `
 
 const PaletteItem = styled.button`
+  flex: 0 0 11%;
   margin: 5px;
   width: 10vw;
   height: 5vw;
