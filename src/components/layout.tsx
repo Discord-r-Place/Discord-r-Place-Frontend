@@ -1,3 +1,4 @@
+import { Button, Spin } from 'antd'
 import { useState } from 'react'
 import styled from 'styled-components'
 
@@ -22,22 +23,15 @@ export default function Layout() {
 
   const apiContext = useApiContext()
 
-  if (!apiContext.image || !apiContext.setPixel) return <div>Select Guild</div>
-
-  /**
-   * Send pixel update to server
-   */
-  function updatePixel() {
-    return apiContext.setPixel!(
-      currentPosition.x,
-      currentPosition.y,
-      cursorColourIndex!
-    )
-  }
+  if (apiContext.status === 'idle') return <div>Select Guild</div>
+  if (apiContext.status === 'loading') return <CenterSpinner size='large' />
+  if (apiContext.status === 'error')
+    return <Button onClick={() => apiContext.retry()}>Error, retry</Button>
 
   return (
     <>
       <Map
+        image={apiContext.image}
         setPosition={setPosition}
         // TODO, not a colour.
         cursorColour={placing ? (cursorColourIndex != undefined ? colourFromPalette(apiContext.image.palette, cursorColourIndex) : undefined) : `url('/cursor.svg')`}
@@ -60,7 +54,13 @@ export default function Layout() {
               <Palette
                 onClose={() => setPlacing(false)}
                 onSelectColourIndex={setCursorColourIndex}
-                onAccept={updatePixel}
+                onAccept={() =>
+                  apiContext.setPixel(
+                    currentPosition.x,
+                    currentPosition.y,
+                    cursorColourIndex!
+                  )
+                }
                 palette={apiContext.image.palette}
               />
             </PalleteBox>
@@ -122,4 +122,11 @@ const PaintButton = styled.button`
   margin: 1vh;
   padding: 2vh;
   border-radius: 2.5vh;
+`
+
+const CenterSpinner = styled(Spin)`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 `

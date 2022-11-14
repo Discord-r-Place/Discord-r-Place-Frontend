@@ -1,15 +1,34 @@
 import { useQuery } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 import getConfig from 'next/config'
-import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState
+} from 'react'
 
 import { Image, ImagePalette } from 'src/components/Types'
 import { useGuildContext } from 'src/context/GuildContext'
+import { useWebSocket } from 'src/helpers/useWebSocket'
 
 type ApiContextType =
   | {
-      image?: Image
-      setPixel?(x: number, y: number, colourIndex: number): Promise<void>
+      status: 'idle'
+    }
+  | {
+      status: 'loading'
+    }
+  | {
+      status: 'success'
+      image: Image
+      setPixel(x: number, y: number, colour: number): Promise<void>
+    }
+  | {
+      status: 'error'
+      retry: () => Promise<void>
     }
   | undefined
 
@@ -21,28 +40,39 @@ export function ApiContextProvider({
   children: React.ReactNode
 }) {
   const { guildId } = useGuildContext()
+
   const session = useSession()!
 
-  const webSocket = useRef<WebSocket>()
+  const [image, setImage] = useState<Image>()
 
-  const [imageWidth, setImageWidth] = useState<number>()
-  const [imageHeight, setImageHeight] = useState<number>()
-  const [imageData, setImageData] = useState<Uint8Array>()
-
-  useEffect(() => {
-    if (!guildId) return
-
+  const url = useMemo(() => {
+    if (!guildId) return undefined
     const {
       publicRuntimeConfig: { WS_URL }
     } = getConfig()
+    return `${WS_URL}servers/${guildId}/ws`
+  }, [guildId])
 
-    const ws = new WebSocket(`${WS_URL}servers/${guildId}/ws`)
-
-    ws.onopen = () => {
+  const onOpen = useCallback(
+    async (ws: WebSocket) => {
       ws.send(session.data?.accessToken!)
-    }
+      return async (x: number, y: number, colourIndex: number) => {
+        ws.send(
+          new Uint8Array([
+            x >> 8,
+            x & 0xff,
+            y >> 8,
+            y & 0xff,
+            colourIndex
+          ])
+        )
+      }
+    },
+    [session.data?.accessToken]
+  )
 
-    ws.onmessage = async (event) => {
+  const onMessage = useCallback(
+    async (_ws: WebSocket, event: MessageEvent<any>) => {
       const blob = event.data as Blob
       const buffer = await blob.arrayBuffer()
 
@@ -51,22 +81,26 @@ export function ApiContextProvider({
       const y = (bytes[2] << 8) + bytes[3]
       const colour = bytes[4]
 
-      setImageData((oldImage) => {
-        if (!oldImage || !imageWidth) return undefined
-        var newImage = new Uint8Array(oldImage)
-        newImage[imageWidth * y + x] = colour
-        return newImage
+      setImage((oldImage) => {
+        if (!oldImage) return undefined
+        const newImageData = new Uint8Array(oldImage.data)
+        newImageData[oldImage.width * y + x] = colour
+        return { ...oldImage, data: newImageData }
       })
-    }
+    },
+    []
+  )
 
-    webSocket.current = ws
+  const ws = useWebSocket<
+    (x: number, y: number, colour: number) => Promise<void>
+  >({
+    url: session.data ? url : undefined,
+    onOpen,
+    onMessage
+  })
+  const { status: wsStatus } = ws
 
-    return () => {
-      ws.close()
-    }
-  }, [guildId, imageWidth, session.data?.accessToken])
-
-  const { data: palette } = useQuery(
+  const { data: palette, refetch: refetchPalette } = useQuery(
     ['palette', guildId],
     async () => {
       const {
@@ -85,10 +119,10 @@ export function ApiContextProvider({
 
       return colours;
     },
-    { enabled: !!guildId, staleTime: 1000 * 60 * 60 }
+    { enabled: wsStatus === "loading", staleTime: 1000 * 60 * 60 }
   );
 
-  const { data: initialImage } = useQuery(
+  const { data: initialImage, refetch } = useQuery(
     ['image', guildId],
     async () => {
       const {
@@ -108,42 +142,45 @@ export function ApiContextProvider({
 
       const width = (dimensions[0] << 8) + dimensions[1]
       const height = (dimensions[2] << 8) + dimensions[3]
-      const image = new Uint8Array(buffer.slice(4))
+      const data = new Uint8Array(buffer.slice(4))
 
-      return { width, height, image }
+      return { width, height, data }
     },
-    { enabled: !!guildId, staleTime: 1000 * 60 * 60 }
+    { enabled: wsStatus === 'loading', staleTime: 1000 * 60 * 60 }
   )
 
   useEffect(() => {
-    if (initialImage) {
-      setImageWidth(initialImage.width)
-      setImageHeight(initialImage.height)
-      setImageData(initialImage.image)
+    if (initialImage && palette) {
+      setImage({...initialImage, palette: palette});
     }
   }, [initialImage])
 
   return (
     <ApiContext.Provider
-      value={{
-        image:
-          imageWidth && imageHeight && imageData && palette
-            ? { width: imageWidth, height: imageHeight, data: imageData, palette: palette }
-            : undefined,
-        setPixel: guildId
-          ? async (x, y, colourIndex) => {
-              webSocket.current?.send(
-                new Uint8Array([
-                  x >> 8,
-                  x & 0xff,
-                  y >> 8,
-                  y & 0xff,
-                  colourIndex
-                ])
-              )
+      value={
+        wsStatus === 'idle'
+          ? {
+              status: 'idle'
             }
-          : undefined
-      }}
+          : wsStatus === 'loading' || !image || !palette
+          ? {
+              status: 'loading'
+            }
+          : wsStatus === 'success' && image && palette
+          ? {
+              status: 'success',
+              setPixel: ws.successData,
+              image: image
+            }
+          : {
+              status: 'error',
+              retry: async () => {
+                await refetchPalette();
+                await refetch()
+                if (wsStatus === 'error') ws.retry()
+              }
+            }
+      }
     >
       {children}
     </ApiContext.Provider>

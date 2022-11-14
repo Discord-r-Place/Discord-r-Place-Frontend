@@ -9,7 +9,6 @@ import styled from 'styled-components'
 
 import { Image, Point, Position, Size } from 'src/components/Types'
 import { pixelSize } from 'src/components/layout'
-import { useApiContext } from 'src/context/ApiContext'
 import { useGuildContext } from 'src/context/GuildContext'
 import { colourFromPalette, toCSS } from 'src/helpers/Colours'
 import { addPoints, diffPoints, scalePoint } from 'src/helpers/math'
@@ -19,35 +18,36 @@ const ORIGIN_SIZE = Object.freeze({ width: 0, height: 0 }) // highly dubious
 const MAX_SCALE = 50
 
 export default function Map({
+  image,
   setPosition,
   cursorColour
 }: {
+  image: Image
   setPosition: (position: Position) => void
   cursorColour?: string | `url('/cursor.svg')`
 }) {
-  const apiContext = useApiContext()
   const currentImage = useRef<Image>()
 
   useEffect(() => {
     // No render
-    if (apiContext.image === currentImage.current) return
+    if (image === currentImage.current) return
 
     const canvas = canvasRef.current!
     const context = canvas.getContext('2d')!
     setRenderContext(context)
 
-    if (apiContext.image) {
+    if (image) {
       if (currentImage.current === undefined) {
         // Initial render
-        DrawImage(context, apiContext.image)
+        DrawImage(context, image)
       } else {
         // Update render
-        UpdateImage(context, currentImage.current, apiContext.image)
+        UpdateImage(context, currentImage.current, image)
       }
     }
 
-    currentImage.current = apiContext.image
-  }, [apiContext.image])
+    currentImage.current = image
+  }, [image])
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -55,8 +55,8 @@ export default function Map({
 
   const cursorParentRef = useRef(null)
   const [canvasSize, setCanvasSize] = useState({
-    width: apiContext.image?.width ?? 1920,
-    height: apiContext.image?.height ?? 1080
+    width: image?.width ?? 1920,
+    height: image?.height ?? 1080
   })
   const [minZoom, setMinZoom] = useState(0)
 
@@ -271,8 +271,8 @@ export default function Map({
       )}
       <Canvas
         ref={canvasRef}
-        width={apiContext.image?.width}
-        height={apiContext.image?.height}
+        width={image?.width}
+        height={image?.height}
         style={{
           width: scale * canvasSize.width * MAX_SCALE + 'px',
           height: scale * canvasSize.height * MAX_SCALE + 'px',
@@ -295,8 +295,8 @@ export default function Map({
         onMouseDown={startPan}
         ref={cursorParentRef}
         style={{
-          width: apiContext.image?.width + 'px',
-          height: apiContext.image?.height + 'px',
+          width: image?.width + 'px',
+          height: image?.height + 'px',
           transform: `translate(${
             viewportTopLeft.x * scale * -MAX_SCALE + parentSize.width
           }px, ${
