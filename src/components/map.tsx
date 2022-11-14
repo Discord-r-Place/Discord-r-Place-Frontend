@@ -7,11 +7,11 @@ import {
 } from 'react'
 import styled from 'styled-components'
 
-import { Colour, Image, Point, Position, Size } from 'src/components/Types'
+import { Image, Point, Position, Size } from 'src/components/Types'
 import { pixelSize } from 'src/components/layout'
 import { useApiContext } from 'src/context/ApiContext'
 import { useGuildContext } from 'src/context/GuildContext'
-import { ByteToColour } from 'src/helpers/Colours'
+import { colourFromPalette, toCSS } from 'src/helpers/Colours'
 import { addPoints, diffPoints, scalePoint } from 'src/helpers/math'
 
 const ORIGIN = Object.freeze({ x: 0, y: 0 })
@@ -23,7 +23,7 @@ export default function Map({
   cursorColour
 }: {
   setPosition: (position: Position) => void
-  cursorColour?: Colour | `url('/cursor.svg')`
+  cursorColour?: string | `url('/cursor.svg')`
 }) {
   const apiContext = useApiContext()
   const currentImage = useRef<Image>()
@@ -340,7 +340,7 @@ function DrawImage(ctx: CanvasRenderingContext2D, image?: Image) {
   for (let x = 0; x < image.width; x++) {
     for (let y = 0; y < image.height; y++) {
       const byte = image.data[x + y * image.width]
-      ctx.fillStyle = ByteToColour(byte)
+      ctx.fillStyle = colourFromPalette(image.palette, byte)
       ctx.fillRect(x, y, pixelSize, pixelSize)
     }
   }
@@ -362,7 +362,7 @@ function UpdateImage(
         const oldByte = oldImage.data[x + y * oldImage.width]
         const newByte = newImage.data[x + y * newImage.width]
         if (oldByte !== newByte) {
-          ctx.fillStyle = ByteToColour(newByte)
+          ctx.fillStyle = newByte < oldImage.palette.length ? toCSS(oldImage.palette[newByte]) : "#FF00FF"
           ctx.fillRect(x, y, pixelSize, pixelSize)
         }
       }

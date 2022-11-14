@@ -5,17 +5,9 @@ import { Colour, Position } from 'src/components/Types'
 import Map from 'src/components/map'
 import Palette from 'src/components/palette'
 import { useApiContext } from 'src/context/ApiContext'
+import { colourFromPalette, toCSS } from 'src/helpers/Colours'
 
 export const pixelSize = 1
-// Mock palette colours
-export const colours: Colour[] = [
-  'white',
-  'red',
-  'yellow',
-  'green',
-  'cyan',
-  'blue'
-]
 
 export default function Layout() {
   // Whether we have selected a tile and are placing/painting it
@@ -25,8 +17,8 @@ export default function Layout() {
     y: 0,
     scale: 1
   })
-  // The colour of the tile we are placing
-  const [cursorColour, setCursorColour] = useState<Colour>()
+  // The colourIndex of the tile we are placing
+  const [cursorColourIndex, setCursorColourIndex] = useState<number>()
 
   const apiContext = useApiContext()
 
@@ -39,7 +31,7 @@ export default function Layout() {
     return apiContext.setPixel!(
       currentPosition.x,
       currentPosition.y,
-      cursorColour!
+      cursorColourIndex!
     )
   }
 
@@ -48,7 +40,7 @@ export default function Layout() {
       <Map
         setPosition={setPosition}
         // TODO, not a colour.
-        cursorColour={placing ? cursorColour : `url('/cursor.svg')`}
+        cursorColour={placing ? (cursorColourIndex != undefined ? colourFromPalette(apiContext.image.palette, cursorColourIndex) : undefined) : `url('/cursor.svg')`}
       />
       <Container>
         {/* Upper view with current pixel position*/}
@@ -64,11 +56,12 @@ export default function Layout() {
                 width: '100vw'
               }}
             >
-              current palette colour: {cursorColour}
+              current palette colour: {cursorColourIndex != undefined ? colourFromPalette(apiContext.image.palette, cursorColourIndex) : 'none'}
               <Palette
                 onClose={() => setPlacing(false)}
-                onSelectColour={setCursorColour}
+                onSelectColourIndex={setCursorColourIndex}
                 onAccept={updatePixel}
+                palette={apiContext.image.palette}
               />
             </PalleteBox>
           ) : (

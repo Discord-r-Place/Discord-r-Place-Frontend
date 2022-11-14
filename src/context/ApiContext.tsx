@@ -3,14 +3,13 @@ import { useSession } from 'next-auth/react'
 import getConfig from 'next/config'
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 
-import { Colour, Image } from 'src/components/Types'
+import { Image, ImagePalette } from 'src/components/Types'
 import { useGuildContext } from 'src/context/GuildContext'
-import { ColourToByte } from 'src/helpers/Colours'
 
 type ApiContextType =
   | {
       image?: Image
-      setPixel?(x: number, y: number, colour: Colour): Promise<void>
+      setPixel?(x: number, y: number, colourIndex: number): Promise<void>
     }
   | undefined
 
@@ -67,6 +66,28 @@ export function ApiContextProvider({
     }
   }, [guildId, imageWidth, session.data?.accessToken])
 
+  const { data: palette } = useQuery(
+    ['palette', guildId],
+    async () => {
+      const {
+        publicRuntimeConfig: { API_URL }
+      } = getConfig()
+
+      const response = await fetch(`${API_URL}servers/${guildId}/palette`, {
+        headers: {
+          Authorization: `Bearer ${session.data?.accessToken!}`
+        }
+      })
+
+      const data = await response.json();
+
+      const colours: ImagePalette = data.map((colourValue: number) => { return { r: (colourValue >> 16) & 0xFF, g: (colourValue >> 8) & 0xFF, b: colourValue & 0xFF } });
+
+      return colours;
+    },
+    { enabled: !!guildId, staleTime: 1000 * 60 * 60 }
+  );
+
   const { data: initialImage } = useQuery(
     ['image', guildId],
     async () => {
@@ -106,18 +127,18 @@ export function ApiContextProvider({
     <ApiContext.Provider
       value={{
         image:
-          imageWidth && imageHeight && imageData
-            ? { width: imageWidth, height: imageHeight, data: imageData }
+          imageWidth && imageHeight && imageData && palette
+            ? { width: imageWidth, height: imageHeight, data: imageData, palette: palette }
             : undefined,
         setPixel: guildId
-          ? async (x, y, colour) => {
+          ? async (x, y, colourIndex) => {
               webSocket.current?.send(
                 new Uint8Array([
                   x >> 8,
                   x & 0xff,
                   y >> 8,
                   y & 0xff,
-                  ColourToByte(colour)
+                  colourIndex
                 ])
               )
             }
