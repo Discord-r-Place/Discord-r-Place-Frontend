@@ -1,25 +1,9 @@
-import { useQuery } from '@tanstack/react-query'
-import { Avatar, Button, Popover, Select, Skeleton, Typography } from 'antd'
+import { Avatar, Button, Popover, Skeleton, Typography } from 'antd'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import Image from 'next/image'
 import styled, { css } from 'styled-components'
 
-import { useGuildContext } from 'src/context/GuildContext'
-import { FetchGuilds, Guild } from 'src/helpers/FetchGuilds'
-
-function GuildProfilePicture({ guild }: { guild: Guild }) {
-  if (guild.icon) {
-    return <VerticallyAlignedImage
-      src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`}
-      alt={`${guild.name} icon`}
-      width={20}
-      height={20}
-    />
-  }
-
-  let firstCharacters = guild.name.split(' ').map((word: string) => word[0]).join('').substring(0, 3);
-  return <FallBackServerProfilePictureDiv>{firstCharacters}</FallBackServerProfilePictureDiv>
-}
+import { GuildSelector } from 'src/components/GuildSelector'
 
 export function UserProfile() {
   const { data: session } = useSession({
@@ -29,18 +13,6 @@ export function UserProfile() {
     }
   })
 
-  const {
-    data: guilds,
-    isSuccess,
-    isLoading
-  } = useQuery(
-    ['guilds', session?.user.id],
-    () => FetchGuilds(session!.accessToken),
-    { enabled: !!session, staleTime: Infinity }
-  )
-
-  const guidContext = useGuildContext()
-
   if (!session)
     return <AvatarSkeletonWrapper active={true} size={64} shape='circle' />
 
@@ -49,24 +21,7 @@ export function UserProfile() {
       content={
         <ContentWrapper>
           <Typography.Text>Signed in as {session.user.name}</Typography.Text>
-
-          {isSuccess && (
-            <Select
-              loading={isLoading}
-              placeholder='Select a guild'
-              value={guidContext.guildId ?? null}
-              onChange={(guildId) => guidContext.setGuildId(guildId)}
-            >
-              {guilds.map((guild) => (
-                <Select.Option key={guild.id} value={guild.id}>
-                  <GuildProfilePicture guild={guild} />
-                  {' '}
-                  {guild.name}
-                </Select.Option>
-              ))}
-            </Select>
-          )}
-
+          <GuildSelector />
           <Button onClick={() => signOut()}>Logout</Button>
         </ContentWrapper>
       }
