@@ -7,6 +7,7 @@ import {
 } from 'react'
 import styled from 'styled-components'
 
+import { DevelopmentOnly } from 'src/components/DevelopmentOnly'
 import { Colour, Image, Point, Position, Size } from 'src/components/Types'
 import { pixelSize } from 'src/components/layout'
 import { useGuildContext } from 'src/context/GuildContext'
@@ -284,12 +285,14 @@ export default function Map({
             'px)'
         }}
       />
-      <PixelDebugBox>
-        <pre>scale: {scale}</pre>
-        <pre>offset: {JSON.stringify(offset)}</pre>
-        <pre>viewportTopLeft: {JSON.stringify(viewportTopLeft)}</pre>
-        <pre>guild: {guidContext.guildId ?? 'none'}</pre>
-      </PixelDebugBox>
+      <DevelopmentOnly>
+        <PixelDebugBox>
+          <pre>scale: {scale}</pre>
+          <pre>offset: {JSON.stringify(offset)}</pre>
+          <pre>viewportTopLeft: {JSON.stringify(viewportTopLeft)}</pre>
+          <pre>guild: {guidContext.guildId ?? 'none'}</pre>
+        </PixelDebugBox>
+      </DevelopmentOnly>
       {/* Center tile cursor */}
       <CursorParent
         onMouseDown={startPan}
