@@ -24,7 +24,7 @@ export default function Map({
 }: {
   image: Image
   setPosition: (position: Position) => void
-  cursorColour?: Colour | `url('/cursor.svg')`
+  cursorColour?: Colour
 }) {
   const currentImage = useRef<Image>()
 
@@ -306,7 +306,7 @@ export default function Map({
       >
         <Cursor
           style={{
-            background: cursorColour,
+            backgroundColor: cursorColour,
             transform:
               'translate(' +
               Math.floor(viewportTopLeft.x) +
@@ -394,6 +394,8 @@ const Cursor = styled.div`
   position: absolute;
   will-change: transform;
   z-index: 3;
+
+  background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' stroke='%23333' stroke-width='10' stroke-dasharray='20%2c 60%2c 40%2c 60%2c 40%2c 60%2c 40%2c 60%2c 20' stroke-dashoffset='0' stroke-linecap='butt'/%3e%3c/svg%3e");
 `
 
 const CursorParent = styled.div`

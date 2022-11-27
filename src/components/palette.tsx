@@ -1,63 +1,77 @@
+import { CheckCircleFilled } from '@ant-design/icons'
+import { Button, Drawer } from 'antd'
 import styled from 'styled-components'
 
-import { CustomButton } from 'src/components/CustomButton'
 import { Colour } from 'src/components/Types'
 import { colours } from 'src/components/layout'
 
 export default function Palette({
   onClose,
+  colour: currentColour,
   onSelectColour,
   onAccept
 }: {
   onClose: () => void
+  colour?: Colour
   onSelectColour: (colour: Colour) => void
   onAccept: () => void
 }) {
   return (
-    <ColourPickerDiv>
+    <Drawer
+      open
+      placement='bottom'
+      onClose={() => onClose()}
+      maskStyle={{ display: 'none' }}
+      height='auto'
+    >
       <ColourPalette>
         {colours.map((colour) => {
           return (
             <PaletteItem
               key={colour}
-              onClick={() => {
-                onSelectColour(colour)
+              onClick={() => onSelectColour(colour)}
+              color={colour}
+              style={{
+                background: colour,
+                border: colour === currentColour ? '2px solid black' : 'none'
               }}
-              style={{ background: colour }}
-            />
+            >
+              {/* Somehow nesecarry */}{' '}
+            </PaletteItem>
           )
         })}
       </ColourPalette>
-      <CenteredButtons>
-        {/*Go back (stop placing) */}
-        <CustomButton onClick={() => onClose()}>x</CustomButton>
-        {/*Confirm placing of tile with selected colour */}
-        <CustomButton onClick={() => onAccept()}>v</CustomButton>
-      </CenteredButtons>
-    </ColourPickerDiv>
+      <ButtonCenterer>
+        <CenteredButton type='primary' size='large' onClick={() => onAccept()}>
+          <CheckCircleFilled />
+        </CenteredButton>
+      </ButtonCenterer>
+    </Drawer>
   )
 }
 
-const ColourPickerDiv = styled.div`
-  display: grid;
-  grid-template-row: 1fr 1fr;
-`
-
 const ColourPalette = styled.div`
-  display: flex;
-  flex-direction: row;
+  padding: 10px;
+
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-auto-rows: 75px;
+  gap: 20px;
+
+  justify-content: stretch;
+  justify-items: stretch;
 `
 
-const PaletteItem = styled.button`
-  margin: 5px;
-  width: 10vw;
-  height: 5vw;
-  -webkit-user-select: none; /* Safari */
-  -ms-user-select: none; /* IE 10 and IE 11 */
-  user-select: none; /* Standard syntax */
+const PaletteItem = styled(Button)`
+  height: 100%;
+  width: 100%;
 `
 
-const CenteredButtons = styled.div`
-  display: flex;
-  justify-content: center;
+const ButtonCenterer = styled.div`
+  display: grid;
+  place-items: center;
+`
+
+const CenteredButton = styled(Button)`
+  width: 200px;
 `

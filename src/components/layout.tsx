@@ -1,7 +1,10 @@
-import { Button, Spin } from 'antd'
+import { LoadingOutlined } from '@ant-design/icons'
+import { Alert, Button, Spin } from 'antd'
+import Modal from 'antd/lib/modal/Modal'
 import { useState } from 'react'
 import styled from 'styled-components'
 
+import { GuildSelector } from 'src/components/GuildSelector'
 import { Colour, Position } from 'src/components/Types'
 import Map from 'src/components/map'
 import Palette from 'src/components/palette'
@@ -31,8 +34,17 @@ export default function Layout() {
 
   const apiContext = useApiContext()
 
-  if (apiContext.status === 'idle') return <div>Select Guild</div>
-  if (apiContext.status === 'loading') return <CenterSpinner size='large' />
+  if (apiContext.status === 'idle')
+    return (
+      <AlertCenterer>
+        <CenteredAlert
+          message='Please select a guild in the top right corner'
+          type='info'
+        />
+      </AlertCenterer>
+    )
+  if (apiContext.status === 'loading')
+    return <CenterSpinner size='large' indicator={<LoadingOutlined spin />} />
   if (apiContext.status === 'error')
     return <Button onClick={() => apiContext.retry()}>Error, retry</Button>
 
@@ -42,7 +54,7 @@ export default function Layout() {
         image={apiContext.image}
         setPosition={setPosition}
         // TODO, not a colour.
-        cursorColour={placing ? cursorColour : `url('/cursor.svg')`}
+        cursorColour={placing ? cursorColour : undefined}
       />
       <Container>
         {/* Upper view with current pixel position*/}
@@ -53,26 +65,24 @@ export default function Layout() {
            Palette if we have selected a tile and are placing, button otherwise */}
         <Footer>
           {placing ? (
-            <PalleteBox
-              style={{
-                width: '100vw'
-              }}
-            >
-              current palette colour: {cursorColour}
-              <Palette
-                onClose={() => setPlacing(false)}
-                onSelectColour={setCursorColour}
-                onAccept={() =>
-                  apiContext.setPixel(
-                    currentPosition.x,
-                    currentPosition.y,
-                    cursorColour!
-                  )
-                }
-              />
-            </PalleteBox>
+            <Palette
+              onClose={() => setPlacing(false)}
+              colour={cursorColour}
+              onSelectColour={setCursorColour}
+              onAccept={() =>
+                apiContext.setPixel(
+                  currentPosition.x,
+                  currentPosition.y,
+                  cursorColour!
+                )
+              }
+            />
           ) : (
-            <PaintButton onClick={() => setPlacing(true)}>
+            <PaintButton
+              type='primary'
+              size='large'
+              onClick={() => setPlacing(true)}
+            >
               paint tile
             </PaintButton>
           )}
@@ -81,6 +91,19 @@ export default function Layout() {
     </>
   )
 }
+
+const AlertCenterer = styled.div`
+  height: 100vh;
+
+  display: grid;
+  place-items: center;
+
+  grid-template-rows: 1fr auto 1fr;
+`
+
+const CenteredAlert = styled(Alert)`
+  grid-row: 2;
+`
 
 const Container = styled.div`
   width: 100vw;
@@ -123,13 +146,7 @@ const CoordinateBox = styled(Box)`
   z-index: 3;
 `
 
-const PaintButton = styled.button`
-  color: white;
-  background-color: gray;
-  margin: 1vh;
-  padding: 2vh;
-  border-radius: 2.5vh;
-`
+const PaintButton = styled(Button)``
 
 const CenterSpinner = styled(Spin)`
   position: absolute;
