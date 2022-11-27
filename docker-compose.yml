@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: registry.jelle.teeuwissen.eu/rplace/frontend
+    ports:
+      - 80:3000
+    environment:
+      SESSION_SECRET: foobar
+      NEXTAUTH_URL: http://localhost
+      API_URL: https://api.rplace.jelle.teeuwissen.eu/
+      WS_URL: wss://api.rplace.jelle.teeuwissen.eu/
+      DISCORD_CLIENT_ID:
+      DISCORD_CLIENT_SECRET:

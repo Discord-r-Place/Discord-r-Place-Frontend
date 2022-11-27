@@ -1,10 +1,8 @@
 import { LoadingOutlined } from '@ant-design/icons'
-import { Alert, Button, Spin } from 'antd'
-import Modal from 'antd/lib/modal/Modal'
+import { Alert, Button, Card, Spin } from 'antd'
 import { useState } from 'react'
 import styled from 'styled-components'
 
-import { GuildSelector } from 'src/components/GuildSelector'
 import { Colour, Position } from 'src/components/Types'
 import Map from 'src/components/map'
 import Palette from 'src/components/palette'
@@ -24,7 +22,7 @@ export const colours: Colour[] = [
 export default function Layout() {
   // Whether we have selected a tile and are placing/painting it
   const [placing, setPlacing] = useState(false)
-  const [currentPosition, setPosition] = useState<Position>({
+  const [position, setPosition] = useState<Position>({
     x: 0,
     y: 0,
     scale: 1
@@ -58,8 +56,8 @@ export default function Layout() {
       />
       <Container>
         {/* Upper view with current pixel position*/}
-        <CoordinateBox>
-          {currentPosition.x}, {currentPosition.y}, {currentPosition.scale}x
+        <CoordinateBox size='small'>
+          ({position.x}, {position.y}) {position.scale}x
         </CoordinateBox>
         {/* Lower 'footer' view
            Palette if we have selected a tile and are placing, button otherwise */}
@@ -70,11 +68,7 @@ export default function Layout() {
               colour={cursorColour}
               onSelectColour={setCursorColour}
               onAccept={() =>
-                apiContext.setPixel(
-                  currentPosition.x,
-                  currentPosition.y,
-                  cursorColour!
-                )
+                apiContext.setPixel(position.x, position.y, cursorColour!)
               }
             />
           ) : (
@@ -115,20 +109,6 @@ const Container = styled.div`
   justify-content: center;
 `
 
-const Box = styled.div`
-  color: white;
-  background-color: gray;
-  margin: 1vh;
-  padding: 2vh;
-  border-radius: 2.5vh;
-`
-
-const PalleteBox = styled(Box)`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`
-
 const Footer = styled.div`
   bottom: 5vw;
   display: flex;
@@ -140,7 +120,7 @@ const Footer = styled.div`
   z-index: 3;
 `
 
-const CoordinateBox = styled(Box)`
+const CoordinateBox = styled(Card)`
   top: 3vw;
   position: absolute;
   z-index: 3;

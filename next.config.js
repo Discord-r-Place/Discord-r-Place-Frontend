@@ -2,6 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  output: 'standalone',
   compiler: {
     styledComponents: true
   },
@@ -12,7 +13,8 @@ const nextConfig = {
   },
   publicRuntimeConfig: {
     API_URL: process.env.API_URL,
-    WS_URL: process.env.WS_URL
+    WS_URL: process.env.WS_URL,
+    NODE_ENV: process.env.NODE_ENV
   },
   images: {
     domains: ['cdn.discordapp.com']
